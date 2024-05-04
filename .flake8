@@ -1,0 +1,29 @@
+[flake8]
+exclude = .git,__pycache__,docs/source/conf.py,old,build,dist
+max-line-length = 70  # Longueur maximale recommandée pour une ligne de code.
+max-complexity = 15  # Complexité cyclomatique maximale recommandée pour une fonction.
+
+# Codes de sélection des violations à signaler :
+# C : erreurs de convention (Convention)
+# E : erreurs de syntaxe (Error)
+# F : erreurs de formatage (Format)
+# W : avertissements (Warning)
+# B : violations liées aux règles de formatage black (Black)
+# B950 : erreurs spécifiques à black
+# H301 : un import par ligne
+# F401 : module importé mais non utilisé
+# F403 : 'from module import *' utilisé ; déconseillé
+# F405 : 'foo' may be undefined, or defined from star imports: module
+# F841 : variable 'foo' is assigned to but never used
+# F901 : 'raise NotImplemented' should be 'raise NotImplementedError'
+# F999 : SyntaxError ou IndentationError
+# F501 : invalid % format literal
+select = C,E,F,W,B,B950,H301,F401,F403,F405,F841,F901,F999,F501
+
+# Codes de violations à ignorer :
+# E203 : whitespace before ':'
+# W503 : line break before binary operator
+ignore = E203, W503
+
+# Ce n'est pas un bug si nous n'utilisons pas toutes les règles de hacking, donc nous les ignorons :
+extend-ignore = H101,H202,H233,H306,H401,H403,H404,H405,H501
