@@ -1,7 +1,9 @@
 [flake8]
 exclude = .git,__pycache__,docs/source/conf.py,old,build,dist
-max-line-length = 70  # Longueur maximale recommandée pour une ligne de code.
-max-complexity = 15  # Complexité cyclomatique maximale recommandée pour une fonction.
+max-line-length = 70  
+# Longueur maximale recommandée pour une ligne de code.
+max-complexity = 15  
+# Complexité cyclomatique maximale recommandée pour une fonction.
 
 # Codes de sélection des violations à signaler :
 # C : erreurs de convention (Convention)
