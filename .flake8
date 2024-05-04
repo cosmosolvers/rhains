@@ -1,8 +1,8 @@
 [flake8]
 exclude = .git,__pycache__,docs/source/conf.py,old,build,dist
-max-line-length = 70  
+max-line-length = 70
 # Longueur maximale recommandée pour une ligne de code.
-max-complexity = 15  
+max-complexity = 15
 # Complexité cyclomatique maximale recommandée pour une fonction.
 
 # Codes de sélection des violations à signaler :
@@ -27,5 +27,6 @@ select = C,E,F,W,B,B950,H301,F401,F403,F405,F841,F901,F999,F501
 # W503 : line break before binary operator
 ignore = E203, W503
 
-# Ce n'est pas un bug si nous n'utilisons pas toutes les règles de hacking, donc nous les ignorons :
+# Ce n'est pas un bug si nous n'utilisons pas toutes les règles de hacking,
+# donc nous les ignorons :
 extend-ignore = H101,H202,H233,H306,H401,H403,H404,H405,H501
