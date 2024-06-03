@@ -1,0 +1,2 @@
+class DateTimeOffSetField:
+    pass

@@ -8,7 +8,7 @@ from core.adapters.interface import SQLAdapterInterface
 
 
 
-class SQLAdapter(SQLAdapterInterface):
+class SQLiteAdapter(SQLAdapterInterface):
     
     def connect(self, *args, **kwargs):
         try:

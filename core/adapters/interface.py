@@ -3,7 +3,19 @@
 from typing import List
 
 
-class SQLAdapterInterface:
+
+
+class Interface:
+    
+    def connect(self, *args, **kwargs):
+        pass
+
+    def close(self):
+        pass
+
+
+
+class SQLAdapterInterface(Interface):
     
     def connect(self, *args, **kwargs):
         raise NotImplementedError("Method not implemented")
@@ -15,7 +27,3 @@ class SQLAdapterInterface:
         raise NotImplementedError("Method not implemented")
 
 
-
-class NOSQLAdapterInterface:
-    
-    pass

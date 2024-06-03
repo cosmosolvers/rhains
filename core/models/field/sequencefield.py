@@ -1,0 +1,2 @@
+class SequenceField:
+    pass

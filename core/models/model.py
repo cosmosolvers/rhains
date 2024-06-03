@@ -1,26 +1,21 @@
 """
 """
-from rhains.core.models.query import Query
-
-
-# pip install
-import shortuuid
-
 
 
 class Model:
-    """
-    """
-    query : Query = None
-    __tablename__ : str = None
-    _id: str = shortuuid.uuid()
-    _meta = {
-        'database': 'default'
-    }
-
-    def __init__(self, *args, **kwargs):
-        self.__tablename__ = self.__class__.__name__
-        self.query = Query(self.__tablename__.lower())
+    connexion = None
 
     def __repr__(self):
-        return f"<{self.__tablename__} object {self._id}>"
+        return f"<{self.__tablename__} rhains object {self.pk}>"
+
+    # sauvegarde un objet
+    def save(self, *args, **kwargs):
+        pass
+
+    # supprime un objet
+    def delete(self, *args, **kwargs):
+        pass
+
+    class Meta:
+        database = 'default'
+        abscratc = False
