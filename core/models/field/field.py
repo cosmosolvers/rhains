@@ -31,6 +31,7 @@ class Field:
             check: Optional[Any] = None,
     ):
         self._nullable = nullable
+        self.meta = self.Meta()
         # verifier que le si check est defini il est une fonction
         if check and not callable(check):
             raise field.FieldCheckError(f"{check} is not callable")
@@ -44,6 +45,7 @@ class Field:
             raise field.FieldDefaultError(f"{self._default} doesn't match the check")
 
         self._primary_key = primary_key
+        self.meta.primarykey = primary_key
         self._unique = unique
         # verifier que le champ n'est pas nullable et primary_key
         if nullable and primary_key:
@@ -105,21 +107,25 @@ class Field:
             self._item += ' UNIQUE'
         return self._item
 
+    class Meta:
+        primarykey = False
+        # foreignkey = ''
 
 
 
-class Field:
+
+# class Field:
     
-    value = None
+#     value = None
     
-    def __init__(
-        auto_updated: bool=False, # definit comme etant mis a jour automatiquement
-        auto_incr: bool=False, # definit comme etant incrementer automatiquement
-        choices: Tuple=None, # definit une liste de choix possibles *
-        max_length: int=None, # definit une longueur maximale
-        min_length: int=None, # definit une longueur minimale
-        power_of_ten: int=None, # definit la puissance de 10
-        on_delete: str=None, # definit une action a effectuer lors de la suppression
-        on_update: str=None, # definit une action a effectuer lors de la mise a jour
-    ):
-        pass
+#     def __init__(
+#         auto_updated: bool=False, # definit comme etant mis a jour automatiquement
+#         auto_incr: bool=False, # definit comme etant incrementer automatiquement
+#         choices: Tuple=None, # definit une liste de choix possibles *
+#         max_length: int=None, # definit une longueur maximale
+#         min_length: int=None, # definit une longueur minimale
+#         power_of_ten: int=None, # definit la puissance de 10
+#         on_delete: str=None, # definit une action a effectuer lors de la suppression
+#         on_update: str=None, # definit une action a effectuer lors de la mise a jour
+#     ):
+#         pass

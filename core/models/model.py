@@ -1,21 +1,19 @@
 """
 """
+from typing import Self
+
+from core.rh.connexion import Connexion
 
 
 class Model:
-    connexion = None
+    connexion = Connexion(Self)
 
-    def __repr__(self):
-        return f"<{self.__tablename__} rhains object {self.pk}>"
-
-    # sauvegarde un objet
-    def save(self, *args, **kwargs):
-        pass
-
-    # supprime un objet
-    def delete(self, *args, **kwargs):
-        pass
+    def __init__(self, *args, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     class Meta:
         database = 'default'
-        abscratc = False
+        # dict or scalar
+        result = 'dict'
+        abstract = False
