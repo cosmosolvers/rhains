@@ -1,12 +1,16 @@
 """
 """
 from typing import Self
+import uuid
 
-from core.rh.connexion import Connexion
+from .field.charfield import CharField
+
+from core.rh.collection import Collection
 
 
 class Model:
-    connexion = Connexion(Self)
+    collection = Collection(Self)
+    pk = CharField(default=uuid.uuid4)
 
     def __init__(self, *args, **kwargs):
         for key, value in kwargs.items():

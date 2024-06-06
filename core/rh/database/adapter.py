@@ -2,7 +2,7 @@
 from typing import Dict, List
 import json
 
-from exception.core.rh import database as data
+from exception.core.rh import database as db
 
 
 def ready_query(self, tablename: str, **kwargs):
@@ -30,7 +30,7 @@ def ready_query(self, tablename: str, **kwargs):
             if '::' in key:
                 key, *operator = key.split('::')
                 if len(operator) == 0:
-                    raise data.DataFieldError(f"{key} is badly built")
+                    raise db.DataFieldError(f"{key} is badly built")
                 if len(operator) == 1:
                     operator = operator[0]
                     handle_operator(key, operator, value)
