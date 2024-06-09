@@ -1,9 +1,9 @@
 # rhains
 
-<center>
+<div align="center">
 
 ![rhains logo](rhains.png)
 
-</center>
+</div>
 
 a python framework for the web combining the power of relational databases with Nosql
