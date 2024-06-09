@@ -1,13 +1,13 @@
 """"""
 # from .interface import SqlInterface
-from .adapter import (
+from ..adapter import (
     Adapter,
     Rowscrud,
     Tablecrud,
     Datacrud
 )
 
-from ..session import session
+from ...session import session
 
 import sqlite3
 import re
@@ -42,19 +42,25 @@ class SqliteCRUD(Rowscrud):
         # creer une memoire cache temporaire pour les conditions having
         # a executer apres le rendu de la base de donnée
         # elle doit etre vider avant chaque requete
-        self.memory = {}
+        self.__ATOMIC = False
 
     def create(self, tablename: str, **kwargs):
+        self.__ATOMIC = kwargs.pop('$atomic', False)
         columns = ', '.join(kwargs.keys())
         placeholders = ', '.join(['?' for _ in kwargs])
         values = tuple(kwargs.values())
         query = f"INSERT INTO {tablename} ({columns}) VALUES ({placeholders})"
 
         with session(self.connexion) as connexion:
-            cursor: sqlite3.Cursor = connexion.cursor()
-            cursor.execute(query, values)
-            connexion.commit()
-            return cursor.lastrowid
+            try:
+                cursor: sqlite3.Cursor = connexion.cursor()
+                cursor.execute(query, values)
+                connexion.commit()
+                return cursor.lastrowid
+            except sqlite3.Error as e:
+                if self.__ATOMIC:
+                    connexion.rollback()
+                raise db.DatabaseError(str(e))
 
     def get(self, tablename: str, **kwargs):
         self.memory.clear()
@@ -71,7 +77,7 @@ class SqliteCRUD(Rowscrud):
 
     def _query(self, tab, func: str, **kwargs):
         join = ''
-        where = 'pk = ?' if func in ('$get', '$set') else ''
+        where = 'pk = ?' if func in ('$get', '$set', '$del') else ''
         having = ''
         values = (kwargs.get('$pk'),) if func in ('$get', '$set') else tuple()
         for key, data in kwargs.items():
@@ -97,6 +103,20 @@ class SqliteCRUD(Rowscrud):
                     values += v
                 else:
                     self.memory[key] = k
+
+    def _join_query(self, tab, key, data):
+        new_tab = data.get('model')
+        join = f' JOIN {new_tab} ON {tab}.{key} = {new_tab}.pk'
+        return join
+
+    def _agent_query(self, tab, key, data):
+        pass
+
+    def _where_query(self, tab, key, data):
+        pass
+
+    def _memory_query(self, tab, key, data):
+        pass
 
     def all(self, tablename: str):
         with session(self.connexion) as connexion:

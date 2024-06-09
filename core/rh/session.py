@@ -19,8 +19,8 @@ class SessionManager:
     #     self._connection = self._database.connect()
     #     return self._connection
 
-    def register(self, name, engine, connexion):
-        self.connexions[name] = (engine, connexion)
+    def register(self, name, connexion):
+        self.connexions[name] = connexion
 
     def get_connexion(self, name):
         if name not in self.connexions.keys():

@@ -1,12 +1,14 @@
 """"""
-from .adapter import Adapter, Rowscrud, Tablecrud, Datacrud
-import pymongo
+import arango.database
+from ..adapter import Adapter, Rowscrud, Tablecrud, Datacrud
+import arango
+from typing import Dict
 
 
-class MongoDBAdapter(Adapter):
+class ArangoDBAdapter(Adapter):
     def connect(self):
         try:
-            self._client = pymongo.MongoClient(
+            self._client = arango.ArangoClient(
                 host=self.conf.get('host'),
                 port=self.conf.get('port'),
                 username=self.conf.get('user'),
@@ -16,13 +18,13 @@ class MongoDBAdapter(Adapter):
             pass
 
 
-class MongoDBCRUD(Rowscrud):
+class ArangoDBCRUD(Rowscrud):
     pass
 
 
-class MongoDBDatacrud(Datacrud):
+class ArangoDBTablecrud(Tablecrud):
     pass
 
 
-class MongoDBTablecrud(Tablecrud):
+class ArangoDBDatacrud(Datacrud):
     pass

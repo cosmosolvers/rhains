@@ -1,23 +1,49 @@
 """
+MODELS FOR DATABASE
+===================
+
+class Templates(Model):
+    ...
 """
-from typing import Self
-import uuid
+from typing import Any, Self
 
-from .field.charfield import CharField
+from .field.field import Field
 
-from core.rh.collection import Collection
+from exception.core.models import model as md
 
 
-class Model:
-    collection = Collection(Self)
-    pk = CharField(default=uuid.uuid4)
+class ModelMeta(type):
+    def __new__(cls, name, bases, attrs):
+        new_class = super().__new__(cls, name, bases, attrs)
+        new_class._fields = {k: v for k, v in attrs.items() if isinstance(v, Field)}
+        return new_class
 
-    def __init__(self, *args, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+
+class Model(metaclass=ModelMeta):
+    def __init__(self, **kwargs):
+        for field_name, field_instance in self._fields.items():
+            if field_name in kwargs:
+                setattr(self, field_name, kwargs[field_name])
+            else:
+                setattr(self, field_name, field_instance._value)
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        if key in self._fields:
+            field = self._fields[key]
+            field.__set__(self, value)
+        else:
+            raise md.ModelFieldAttributeError(f"{key} is not a valid field")
+
+    def __getattr__(self, key: str) -> Any:
+        if key in self._fields:
+            field = self._fields[key]
+            return field.__get__(self)
+        raise md.ModelFieldAttributeError(f"{key} is not a valid field")
+
+    def __to_dict(self):
+        return {key: getattr(self, key) for key in self._fields}
 
     class Meta:
         database = 'default'
-        # dict or scalar
-        result = 'dict'
         abstract = False
+        sort = ''

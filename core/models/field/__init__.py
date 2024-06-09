@@ -2,13 +2,12 @@ from .aggregationfield import AggregationField
 from .arrayfield import ArrayField
 from .audiofield import AudioField
 
-from .binaryfield import (
+from .nbase import (
     BinaryField,
     HexadecimalField,
     Base64Field,
     Base64UrlField,
     Base32Field,
-    Base16Field,
     BaseNField
 )
 from .booleanfield import BooleanField
@@ -112,7 +111,6 @@ __all__ = [
     'Base64Field',
     'Base64UrlField',
     'Base32Field',
-    'Base16Field',
     'BaseNField',
     'BooleanField',
     'ByteField',

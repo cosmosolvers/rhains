@@ -1,9 +1,18 @@
+class Integer:
+    def __init__(self) -> None:
+        self.value = 0
+
+    def __get__(self, instance, owner):
+        return self.value
+
+    def __set__(self, instance, value):
+        self.value = value
 
 
 class Model:
-    id = 4
+    id = Integer()
     name = 'hydromel'
-    age = 2
+    age = Integer()
     
     class Meta:
         my = 'meta'
@@ -12,13 +21,13 @@ class Model:
 if __name__ == '__main__':
     print(Model.__name__)
     print(Model.__dict__)
-    print(Model.__module__)
-    print(Model.__class__)
-    print(Model.__bases__)
-    print(Model.__qualname__)
-    print(Model.__annotations__)
-    print(Model.__doc__)
-    print(Model.Meta.__dict__)
+    # print(Model.__module__)
+    # print(Model.__class__)
+    # print(Model.__bases__)
+    # print(Model.__qualname__)
+    # print(Model.__annotations__)
+    # print(Model.__doc__)
+    # print(Model.Meta.__dict__)
     # print(Model.__repr__)
     # print(Model.__str__)
     # print(Model.__hash__)
@@ -106,3 +115,24 @@ if __name__ == '__main__':
     # print(Model.__anext__)
     # print(Model.__aenter__)
     # print(Model.__aexit__)
+
+
+{
+    '$pull': {
+        '$pk': 'value',
+        'field': {
+            '$fk': {
+                'field': 'value',
+                'field': 'value',
+                'field': {'$gt': 'value'},
+                'field': {'$lt': 'value'},
+                'field': {
+                    '$fk': {
+                        'field': 'value',
+                        'field': 'value',
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,6 +1,9 @@
 """
+ENCAPSULATION DES DONNEES
+=========================
+
 primary syntax
-==============
+--------------
 create : '$push'
 list   : '$pull'
 get    : '$get'
@@ -8,7 +11,7 @@ update : '$set'
 delete : '$del'
 
 create syntax
-=============
+-------------
 {
     '$push': {
         'field': 'value',
@@ -18,17 +21,17 @@ create syntax
 }
 
 get syntax
-==========
+----------
 1. simple get
 {
     '$get': {
-        '$pk': 'value'
+        'field': 'value',
+        'field': 'value',
     }
 }
 2. get with primary condition
 {
     '$get': {
-        '$pk': 'value',
         'field': 'value',
         'field1': {'$lt': 'value'}
     }
@@ -36,11 +39,10 @@ get syntax
 3. get with foreign key
 {
     '$get': {
-        '$pk': 'value',
         'field': 'value',
         # lorsque vous voulez mettre une condition sur un/plusieurs
         # champ de la table associer a la fk
-        'field1': {'$fk': {
+        'field1': {
             'field': 'value',
             ...
             }
@@ -49,7 +51,7 @@ get syntax
 }
 
 list syntax
-===========
+-----------
 1. simple list
 {
     '$pull': {'$': '*'}
@@ -64,8 +66,11 @@ list syntax
 3. utiliser les requirements
 {
     '$pull': {
-        '$pk': 'value',
-        'field': {'$fk': {'field': 'value}}
+        'field': 'value',
+        'field': {
+            'field': value,
+            'field': value
+        }
     }
 }
 4. utiliser les agents
@@ -103,31 +108,46 @@ list syntax
 }
 
 update syntax
-=============
+-------------
 {
     '$set': {
-        '$pk': 'value',
+        'field': 'value',
+        'field': 'value',
         ...,
-        '$update': {
-            'field': value,
-            # les champs de list, tuple, dict
-            'field': {'$rm': value},
-            'field': {'$add': value},
+        '$commit': {
+            'field': 'value',
+            'field': 'value',
         }
     }
 }
 
 delete syntax
-=============
+-------------
 {
     '$del': {
-        '$pk': 'value',
+        'field': 'value',
+        'field': 'value',
         ...
     }
 }
 
+many syntax
+-----------
+{
+    '$': [
+        {
+            '$get': {
+            }
+        },
+        {
+            '$get': {
+            }
+        },
+    ]
+}
+
 the agents
-==========
+----------
 s'appliquent uniquement sur un pull
 
 1. all
@@ -147,17 +167,8 @@ s'appliquent uniquement sur un pull
 9. last
     {'$.': -1}
 
-the requirements
-================
-s'appliquent uniquement sur les functions $get, $del, $set
-
-1. pk
-    $pk': 'value'
-2. fk
-    {'$fk': {'field': 'value'}}
-
 the conditions
-===============
+--------------
 s'appliquent uniquement sur les champs
 
 1. less than
@@ -188,54 +199,27 @@ s'appliquent uniquement sur les champs
     {'$rm': value} / {'$add': value}
 
 the keys
-========
+--------
 1. many
-    {'$': }
-
+    {'$': {} }
+    
+2. atomic
+    {'$atomic': True} default False
 the meta
-========
+--------
 1. aggregation
     {'$agg': {'field': 'value'}}
 """
-from typing import Dict
-
 from exception.core.rh.database import collection as db
 
-from .result import (
-    Success,
-    Fails,
-
-    StoredKey,
-    StoredKeyList,
-
-    Vector,
-    VectorList
-)
 from .database import (
-    SqliteAdapter,
     SqliteCRUD,
-
-    PostgresAdapter,
     PostgresCRUD,
-
-    MysqlAdapter,
     MysqlCRUD,
-
-    MongoDBAdapter,
     MongoDBCRUD,
-
-    ArangoDBAdapter,
     ArangoDBCRUD
 )
-from .session import session_manager
-
-adaptor = {
-    'sqlite': SqliteAdapter,
-    'mysql': MysqlAdapter,
-    'postgres': PostgresAdapter,
-    'mongodb': MongoDBAdapter,
-    'Arangodb': ArangoDBAdapter
-}
+from .result.scalar import Scalar, Matrix
 
 instruct = {
     'sqlite': SqliteCRUD,
@@ -246,26 +230,35 @@ instruct = {
 }
 
 
-class Collection:
-    def __init__(self, model) -> None:
-        self._model = model
-        self.res = self._model.Meta.result
-        engine, connexion = session_manager.get_connexion(
-            self._model.Meta.database
-        )
-        self._instruct = instruct.get(engine)(connexion)
+class Connection:
+    def __init__(self, **kwargs) -> None:
+        self.__connexion = instruct.get(kwargs.get('engine'))(kwargs.get('connect'))
+        self.__model = kwargs.get('model')
+        self.tablename = str(self.__model.__name__).lower()
 
-    def collect(self, **kwargs):
+    @property
+    def collection(self):
+        return Collection(self.__model, self.__connexion)
+
+
+class Collection:
+    def __init__(self, model, connexion) -> None:
+        self.__model = model
+        self.__connexion = connexion
+
+    def collect(self, method: str, **kwargs):
+        if method not in ('$get', '$set', '$del', '$push', '$pull', '$'):
+            raise db.DataBaseRequestNotFoundError(f"{method} not allowed")
         if kwargs:
             if len(kwargs) != 1:
                 raise db.DataBaseConditionError('too many arguments')
             key, value = kwargs.popitem()
             match key:
-                case '$get': return self._get(value)
-                case '$set': return self._update(value)
-                case '$del': return self._delete(value)
-                case '$push': return self._create(value)
-                case '$pull': return self._filter(value)
+                case '$get': return self.get(**value)
+                case '$set': return self.update(**value)
+                case '$del': return self.delete(**value)
+                case '$push': return self.create(**value)
+                case '$pull': return self.filter(**value)
                 case '$':
                     if not isinstance(value, list):
                         raise db.DataBaseFieldTypeError(f"{value} must be list")
@@ -275,125 +268,81 @@ class Collection:
                     return tuple(args)
         return self._all()
 
-    def _create(self, data):
-        if not isinstance(data, dict):
-            raise db.DataBaseFieldTypeError(f"{data} must be dict")
-        return self._bulk_create(**data)
-
-    def _bulk_create(self, **kwargs) -> StoredKey | Vector:
-        """_summary_
-        Returns:
-            RhesultOne | RhesultDictOne: _description_
+    # $push
+    def create(self, **kwargs) -> Scalar:
         """
-        # cree un objet du model
-        entry = self._model(**kwargs)
-        # recupere l'objet sous forme de dictionnaire
-        entry = self._to_dict(entry)
-        # cree l'objet dans la base de donnee
-        result = self._instruct.create(self._model.__name__, **entry)
-        return Vector(self, dict(result))\
-            if self.res == 'dict' else StoredKey(self, dict(result))
-
-    def _get(self, data):
-        if not isinstance(data, dict):
-            raise db.DataBaseFieldTypeError(f"{data} must be dict")
-        return self._bulk_get(**data)
-
-    def _bulk_get(self, **kwargs) -> StoredKey | Vector | None:
-        if '$pk' in kwargs:
-            # seul un pull est autoriser a avoir '$' comme argument direct
-            if '$' in kwargs:
-                raise db.DataBaseConditionError('$get not allowed with $')
-            self._recap_data(kwargs)
-            result = self._instruct.get(self._model.__name__, **kwargs)
-            return Vector(self, dict(result))\
-                if self.res == 'dict' else StoredKey(self, dict(result))
-        else:
-            raise db.DataBaseConditionError('missing primary key')
-
-    def _all(self) -> VectorList | StoredKeyList:
-        result = self._instruct.all(self._model.__name__)
-        result = [
-            Vector(self, dict(item)) if self.res == 'dict' else StoredKey(self, dict(item))
-            for item in result
-        ]
-        return VectorList(self, result)\
-            if self.res == 'dict' else StoredKeyList(self, result)
-
-    def _filter(self, data):
-        if not isinstance(data, dict):
-            raise db.DataBaseFieldTypeError(f"{data} must be dict")
-        if len(data) == 1 and '$' in data:
-            return self._all()
-        return self._bulk_filter(**data)
-
-    def _bulk_filter(self, **kwargs) -> VectorList | StoredKeyList:
-        self._recap_data(kwargs)
-        result = self._instruct.filter(self._model.__name__, **kwargs)
-        result = [
-            Vector(self, dict(item)) if self.res == 'dict' else StoredKey(self, dict(item))
-            for item in result
-        ]
-        return VectorList(self, result)\
-            if self.res == 'dict' else StoredKeyList(self, result)
-
-    def _update(self, data):
-        if not isinstance(data, dict):
-            raise db.DataBaseFieldTypeError(f"{data} must be dict")
-        return self._update(**data)
-
-    def _bulk_update(self, **kwargs) -> StoredKey | Vector | None:
-        if '$pk' in kwargs:
-            # seul un pull est autoriser a avoir '$' comme argument direct
-            if '$' in kwargs:
-                raise db.DataBaseConditionError('$get not allowed with $')
-            self._recap_data(kwargs)
-        result = self._instruct.update(self._model.__name__, **kwargs)
-        return Vector(self, dict(result))\
-            if self.res == 'dict' else StoredKey(self, dict(result))
-
-    def _delete(self, data):
-        if not isinstance(data, dict):
-            raise db.DataBaseFieldTypeError(f"{data} must be dict")
-        return self._delete(**data)
-
-    def _bulk_delete(self, **kwargs) -> Success | Fails :
-        if '$pk' in kwargs:
-            # seul un pull est autoriser a avoir '$' comme argument direct
-            if '$' in kwargs:
-                raise db.DataBaseConditionError('$get not allowed with $')
-            self._recap_data(kwargs)
-        result = self._instruct.delete(self._model.__name__, **kwargs)
-        return Success if result else Fails
-
-    def _to_dict(self, obj):
-        return {
-            key: getattr(obj, key)
-            for key in obj.__dict__
-            if not key.startswith('_') and not callable(getattr(obj, key))
+        kwargs: {
+            'field': 'value',
+            'field': 'value',
+            ...
         }
+        """
+        instance = self.__model(**kwargs)
+        instance_fields = instance.__to_dict()
+        result = self.__connexion.create(self._model.__name__, **instance_fields)
+        instance = self.__model(**result)
+        return Scalar(instance, self)
 
-    def _recap_data(self, **kwargs):
-        for key, value in kwargs.items():
-            if isinstance(value, dict):
-                if '$fk' in value.keys():
-                    value['$fk']['model'] = getattr(self._model, key).meta.foreignkey.__name__
-                    self._recap_data(value)
+    def all(self, **kwargs) -> Matrix | None:
+        result = self.__connexion.all(self._model.__name__)
+        return Matrix(self, *[self._model(**item) for item in result]) if result else None
 
-    @property
-    def instruct(self):
-        return self._instruct
+    def filter(self, **kwargs) -> Matrix | None:
+        """
+        kwargs: {
+            'field': 'value',
+            'field': 'value',
+            ...
+        }
+        """
+        result = self.__connexion.filter(self._model.__name__, **kwargs)
+        return Matrix(self, *[self._model(**item) for item in result]) if result else None
 
+    def get(self, **kwargs) -> Scalar | None:
+        """
+        kwargs: {
+            'field': 'value',
+            'field': 'value',
+            ...
+        }
+        """
+        result = self.__connexion.get(self._model.__name__, **kwargs)
+        if not result:
+            return None
+        if isinstance(result, dict):
+            return Scalar(self._model(**result), self)
+        else:
+            raise db.DataBaseConditionError('too many results')
 
-# databases configuration (manage)
-# a charger depuis un fichier de configuration
-# avant de lancer le serveur
-# Model._service = (au service charger)
-class Service:
-    def __init__(self, conf: Dict, *args, **kwargs) -> None:
-        for key, data in conf.items():
-            session_manager.register(
-                key,
-                data.get('engine'),
-                adaptor.get(data.get('engine'))(data)
-            )
+    def update(self, **kwargs) -> Matrix | Scalar | None:
+        """
+        kwargs: {
+            'field': 'value',
+            'field': 'value',
+            ...,
+            '$commit': {
+                'field': 'value',
+                'field': 'value',
+            }
+        }
+        """
+        if '$commit' not in kwargs:
+            raise db.DataBaseConditionError('missing commit')
+        commit = kwargs.pop('$commit')
+        result = self.__connexion.update(self._model.__name__, **kwargs, **commit)
+        if not result:
+            raise db.DataBaseUpdateError('update failed')
+        if isinstance(result, dict):
+            return Scalar(self.__model(**result), self)
+        else:
+            return Matrix(*[self._model(**item) for item in result]) if result else None
+
+    def delete(self, **kwargs) -> None:
+        """
+        kwargs: {
+            'field': 'value',
+            'field': 'value',
+            ...
+        }
+        """
+        self.__connexion.delete(self._model.__name__, **kwargs)

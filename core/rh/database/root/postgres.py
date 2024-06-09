@@ -1,5 +1,5 @@
 """"""
-from .adapter import Adapter, Rowscrud, Tablecrud, Datacrud
+from ..adapter import Adapter, Rowscrud, Tablecrud, Datacrud
 import psycopg2
 
 

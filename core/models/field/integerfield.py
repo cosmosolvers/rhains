@@ -37,7 +37,6 @@ class IntegerField(Field):
         self._validate_min_digits(min_digits)
         self._validate_interval(interval)
         self._validate_choices(choices)
-        self._name = self._default
 
     def _validated_default(self):
         try:
@@ -106,10 +105,10 @@ class IntegerField(Field):
         except ValueError:
             raise field.IntegerFieldLoadError(f"{value} can't be loaded")
 
-    def dump(self, value: Any) -> int:
+    def dump(self) -> int:
         try:
             value = int(value)
-            return int(value)
+            return int(self._value)
         except ValueError:
             raise field.IntegerFieldDumpError(f"{value} can't be encapsuled")
 

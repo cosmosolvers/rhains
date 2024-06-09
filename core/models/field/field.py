@@ -1,9 +1,6 @@
 """
 """
-from typing import Any, Optional
-
-# import inspect
-
+from typing import Any, Optional, Callable
 
 # exception class
 from exception.core.models import field
@@ -28,36 +25,52 @@ class Field:
             # lors de la modification de la table
             editable: bool = True,
             # validateur de donnée (definir une fonction de validation) ex: lambda x: x > 0
-            check: Optional[Any] = None,
+            check: Callable[..., Any] | None = None,
     ):
         self._nullable = nullable
-        self.meta = self.Meta()
-        # verifier que le si check est defini il est une fonction
-        if check and not callable(check):
-            raise field.FieldCheckError(f"{check} is not callable")
-        self._check = check
-        # verifier que la valeur par defaut exist si le champ n'est pas nullable
-        if not nullable and not default:
-            raise field.FieldDefaultError("default value is required")
-        self._default = default if not callable(default) else self.default()
-        # verifier que la valeur par defaut est valide
-        if not self._validated(self._default):
-            raise field.FieldDefaultError(f"{self._default} doesn't match the check")
-
-        self._primary_key = primary_key
-        self.meta.primarykey = primary_key
         self._unique = unique
-        # verifier que le champ n'est pas nullable et primary_key
-        if nullable and primary_key:
-            raise field.FieldNullableError("nullable field can't be primary key")
-        # verifier que le champ n'est pas nullable et unique
-        if nullable and unique:
-            raise field.FieldNullableError("nullable field can't be unique")
-
         self._editable = editable
-        self._item: str = ''
-        self.encapsule_type = None
-        self._name = self._default
+        self._primarykey = primary_key
+        self._default = default if not callable(default) else self.default()
+        self._check = check
+
+        self.__validated_unique()
+        self.__validated_primarykey()
+        self.__validated_check()
+        self.__validated_default()
+
+        self._value = self._default
+        self.__name = None
+
+    def __validated_unique(self):
+        if self._nullable and self._unique:
+            raise field.FieldUniqueError("nullable field can't be unique")
+
+    def __validated_primarykey(self):
+        if self._nullable and self._primarykey:
+            raise field.FieldPrimarykeyError("nullable field can't be primary key")
+        self._unique = True
+
+    def __validated_check(self):
+        if not self._wrap_function(self._check):
+            raise field.FieldCheckError(f"{self._check} is not a valid function")
+
+    def _wrap_function(self, check: Callable) -> Callable:
+        def wrapper():
+            return check(self._value)
+        return wrapper
+
+    def __validated_default(self):
+        if self._default:
+            if not self._check(self._default):
+                raise field.FieldDefaultError(f"{self._default} doesn't match the check")
+        else:
+            if not self._nullable:
+                raise field.FieldDefaultError("default value is required")
+            if self._unique:
+                raise field.FieldDefaultError("default value is required")
+            if self._primary_key:
+                raise field.FieldDefaultError("default value is required")
 
     # convertir une valeur de la base de donnée en donnée python
     # apres la lecture dans la base de donnée
@@ -66,58 +79,39 @@ class Field:
 
     # convertir une donnée python en valeur de la base de donnée
     # avant l'ecriture dans la base de donnée
-    def dump(self, value: Any) -> Any:
+    def dump(self) -> Any:
         raise NotImplementedError
 
     # valider une donnée avant l'ecriture dans la base de donnée
     def _validated(self, value: Any) -> bool:
-        if not value and not self._nullable:
-            raise field.FieldNullableError("{value} can't be empty")
+        if value is None and not self._nullable:
+            raise field.FieldNullableError(f"{self.__name} can't be null")
         if self._check and not self._check(value):
-            raise field.FieldCheckError(f"{value} doesn't match the check")
+            raise field.FieldCheckError(f"{self.__name} is not valid")
         return True
 
+    # le nom sur lequel est stocker le champ
     def __set_name__(self, owner, name):
-        self._name = name
+        self.__name = name
 
     def __set__(self, instance, value):
-        value = self.load(value)
         # si une value existe ne pas la modifier
-        if instance.__dict__.get(self._name) and not self._editable:
-            raise field.FieldEditableError(f"{self._name} can't be modified")
+        if instance.__dict__.get(self.__name) and not self._editable:
+            raise field.FieldEditableError(f"{self.__name} can't be modified")
         if self._validated(value):
-            instance.__dict__[self._name] = value
+            instance.__dict__[self.__name] = value
+            self._value = value
 
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return instance.__dict__.get(self._name, self._default)
-
-    def item(self):
-        self._item = self.encapsule_type
-        if self._nullable:
-            self._item += ' NULL'
-        else:
-            self._item += ' NOT NULL'
-        if self._default:
-            self._item += f" DEFAULT {self._default}"
-        if self._primary_key:
-            self._item += ' PRIMARY KEY'
-        if self._unique:
-            self._item += ' UNIQUE'
-        return self._item
-
-    class Meta:
-        primarykey = False
-        # foreignkey = ''
-
-
+        return instance.__dict__.get(self.__name, self._default)
 
 
 # class Field:
-    
+
 #     value = None
-    
+
 #     def __init__(
 #         auto_updated: bool=False, # definit comme etant mis a jour automatiquement
 #         auto_incr: bool=False, # definit comme etant incrementer automatiquement
