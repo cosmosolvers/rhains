@@ -2,7 +2,7 @@
 import json
 from _collections_abc import dict_keys
 
-from .result import RhesultOne, RhesultMany
+from ..result import RhesultOne, RhesultMany
 
 from exception.core.rh.database import rhesult as rhs
 

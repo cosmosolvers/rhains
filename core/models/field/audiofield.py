@@ -15,7 +15,16 @@ class AudioField(FileField):
     """
     AUDIO FIELD
     ===========
-    field pour les fichiers audio
+    champ de fichiers audio
+
+    :param upload_to: repertoire de stockage
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+
+    :raise FieldMediaFormatError: si le format audio n'est pas valide
+    :raise FieldFileSizeError: si la taille du fichier est trop grande
+
+    :return: str
     """
 
     def __init__(

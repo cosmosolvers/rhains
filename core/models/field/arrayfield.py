@@ -8,7 +8,14 @@ class ArrayField(Field):
     """
     ARRAY FIELD
     ===========
-    field pour les listes et les tuples
+    champ de listes et les tuples
+
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+    :param editable: valeur editable
+    :param check: fonction de validation
+
+    :return: List[Any] | Tuple[Any]
     """
 
     def __init__(

@@ -16,7 +16,7 @@ class DecimalField(Field):
     def __init__(
         self,
         nullable: bool = True,
-        default: Optional[Any] = None,
+        default: Optional[float | int | str] = None,
         primary_key: bool = False,
         unique: bool = False,
         editable: bool = True,
@@ -29,11 +29,9 @@ class DecimalField(Field):
         interval: Optional[List[float | str | int]] = None,
         choices: Optional[Tuple[float | str | int]] = None
     ):
+        default = default if not callable(default) else default()
+        default = Decimal(default) if default else None
         super().__init__(nullable, default, primary_key, unique, editable, check)
-        try:
-            self._default = Decimal(self._default) if self._default else None
-        except ValueError:
-            raise field.DecimalFieldDefaultError(f"{self._default} can't be loaded")
 
         self._validate_min(min)
         self._validate_max(max)
@@ -46,19 +44,18 @@ class DecimalField(Field):
         self.encapsule_type = f'DECIMAL({self._max_digits}, {self._decimal_places})'
         getcontext().prec = self._max_digits
         self.scale = 1 / self._decimal_palces * 10
-        self._default = self._default.quantize(Decimal(self.scale))
-        self._name = self._default
+        self._value = self._value.quantize(Decimal(self.scale))
 
     def _validate_min(self, min: Optional[float | str | int]):
         self._min = Decimal(min)
-        if min and not self._default:
-            self._default = self._min
+        if min and not self._value:
+            self._value = self._min
 
     def _validate_max(self, max: Optional[float | str | int]):
         if self._min and max:
             raise field.FieldOverUseError("max and min can't be defined together")
 
-        if max and not self.default:
+        if max and not self._value:
             raise field.FieldDefaultError("default value is required")
         self._max = Decimal(max)
 
@@ -66,16 +63,16 @@ class DecimalField(Field):
         if not max_digits:
             raise field.DecimalFieldError("max_digits value is required")
         self._max_digits = max_digits
-        if not self.default:
+        if not self._value:
             raise field.FieldDefaultError("default value is required")
-        if self._max_digits and len(str(self.default)) > self._max_digits:
+        if self._max_digits and len(str(self._value)) > self._max_digits:
             raise field.FieldDefaultError(f"default value must have {self._max_digits} digits")
 
     def _validate_min_digits(self, min_digits: Optional[int]):
         self._min_digits = min_digits
-        if self._min_digits and not self.default:
+        if self._min_digits and not self._value:
             raise field.FieldDefaultError("default value is required")
-        if self._min_digits and len(str(self.default)) < self._min_digits:
+        if self._min_digits and len(str(self._value)) < self._min_digits:
             raise field.FieldDefaultError(f"default value must have {self._min_digits} digits")
 
     def _validate_decimal_places(self, decimal_places: Optional[int]):
@@ -93,10 +90,10 @@ class DecimalField(Field):
                 raise field.FieldIntervalError("interval value must have 2 value ascendant")
             self._interval = [Decimal(interval[0]), Decimal(interval[-1])]
 
-            if self._interval and not self._default:
+            if self._interval and not self._value:
                 raise field.FieldDefaultError("default value is required")
             if self._interval and (
-                self._default > self._interval[-1] or self._default < self._interval[0]
+                self._value > self._interval[-1] or self._value < self._interval[0]
             ):
                 raise field.FieldDefaultError(
                     f"default value must in [{self._interval[0]}, {self._interval[-1]}] interval"
@@ -104,9 +101,9 @@ class DecimalField(Field):
 
     def _validate_choices(self, choices: Optional[Tuple[float | str | int]]):
         self._choices = (Decimal(i) for i in choices)
-        if self._choices and not self.default:
-            self._default = self._choices[0]
-        if self._choices and self.default not in self._choices:
+        if self._choices and not self._value:
+            self._value = self._choices[0]
+        if self._choices and self._value not in self._choices:
             raise field.FieldDefaultError(f"default value must be in {self._choices}")
 
     def load(self, value: Any) -> Any:
@@ -116,12 +113,11 @@ class DecimalField(Field):
         except ValueError:
             raise field.DecimalFieldLoadError(f"{value} can't be loaded")
 
-    def dump(self, value: Any) -> Any:
+    def dump(self) -> Any:
         try:
-            value = Decimal(value).quantize(Decimal(self.scale))
-            return value
+            return Decimal(self._value).quantize(Decimal(self.scale))
         except ValueError:
-            raise field.DecimalFieldDumpError(f"{value} can't be encapsuled")
+            raise field.DecimalFieldDumpError(f"{self._value} can't be encapsuled")
 
     def validate(self, value: Union[float, int, str]) -> bool:
         if self._min and value < self._min:

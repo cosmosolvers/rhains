@@ -5,7 +5,7 @@ MODELS FOR DATABASE
 class Templates(Model):
     ...
 """
-from typing import Any, Self
+from typing import Any
 
 from .field.field import Field
 
@@ -42,6 +42,12 @@ class Model(metaclass=ModelMeta):
 
     def __to_dict(self):
         return {key: getattr(self, key) for key in self._fields}
+
+    def __str__(self) -> str:
+        data = self.__to_dict()
+        for k, v in data.items():
+            if hasattr(v, 'primary_key') and v.primary_key:
+                return v
 
     class Meta:
         database = 'default'

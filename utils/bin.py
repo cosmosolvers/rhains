@@ -239,3 +239,27 @@ def baseN_to_base32(baseN: str, base: int) -> str:
     return base64.b32encode(
         baseN_to_decimal(baseN, base).to_bytes(
             (baseN_to_decimal(baseN, base).bit_length() + 7) // 8, 'big')).decode()
+
+
+def str_to_decimal(string: str) -> int:
+    return int.from_bytes(string.encode(), 'big')
+
+
+def str_to_binary(string: str) -> str:
+    return bin(int.from_bytes(string.encode(), 'big'))[2:]
+
+
+def str_to_hexadecimal(string: str) -> str:
+    return string.encode().hex()
+
+
+def str_to_base64(string: str) -> str:
+    return base64.b64encode(string.encode()).decode()
+
+
+def str_to_base64url(string: str) -> str:
+    return base64.urlsafe_b64encode(string.encode()).decode()
+
+
+def str_to_base32(string: str) -> str:
+    return base64.b32encode(string.encode()).decode()

@@ -13,7 +13,16 @@ class FileField(Field):
     """
     FILE FIELD
     ==========
-    field pour les fichiers
+    champ general de fichiers
+
+    :param upload_to: repertoire de stockage
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+
+    :raise FieldFileNotFoundError: si le fichier n'est pas trouvé
+    :raise FieldFileSizeError: si la taille du fichier est trop grande
+
+    :return: str
     """
 
     def __init__(
@@ -33,9 +42,9 @@ class FileField(Field):
             path,
             upload_to or ''
         )
-        self._default = os.path.join(self._upload, default) if default else None
+        default = os.path.join(self._upload, default) if default else None
 
-        super().__init__(nullable=nullable, default=self._default)
+        super().__init__(nullable=nullable, default=default)
         if not os.path.exists(self._upload):
             os.makedirs(self._upload)
         self._size = 0
@@ -60,13 +69,13 @@ class FileField(Field):
         if os.path.exists(self._value):
             os.remove(self._value)
 
-    def load(self, value: Any) -> Any:
+    def load(self, value: str) -> str:
         if not os.path.exists(value):
             raise field.FieldFileNotFoundError(f"{value} not found")
-        return str(self._value)
+        return self._value
 
     def dump(self) -> str:
-        return str(self._value)
+        return self._value
 
     def _validated(self, value: Any) -> bool:
         return super()._validated(value) and isinstance(value, bytes)

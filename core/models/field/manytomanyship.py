@@ -1,31 +1,22 @@
-from .reference import Reference
+from .relationship import RelationShip
+from ..model import Model
 
-from typing import Any
+from typing import Any, List
 import json
 
 from exception.core.models import field
 
 
-class ManyToManyField(Reference):
+class ManyToManyShip(RelationShip):
     """
-    MANY TO MANY FIELD
-    ==================
-    champ de relation un a plusieurs
-
-    :param to: model reference
-    :param relation_name: name of the relation
-
-    :raise RelationModelError: if to is not a Model
-    :raise RelationModelError: if on_delete is not a valid on_delete
-    :raise RelationModelError: if relation_name is not a valid relation name
-
-    :return: List
+    ONE TO ONE SHIP
+    ===============
     """
 
     def __init__(
         self,
-        to,
-        relation_name: str = None,
+        to: List[Model],
+        relation_name: str
     ):
         super().__init__(
             to=to
@@ -34,7 +25,7 @@ class ManyToManyField(Reference):
         if not relation_name:
             self._relation_name = f"{self._to.__name__}_{self.__class__.__name__}"
         if isinstance(self._relation_name, str):
-            raise field.RelationModelError(f"{self._relation_name} is not a valid relation name")
+            raise field.ManyToManyShipError(f"{self._relation_name} is not a valid relation name")
         self._value = []
         self._on_delete = ''
 

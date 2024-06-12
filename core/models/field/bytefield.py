@@ -10,6 +10,19 @@ class ByteField(Field):
     BYTES FIELD
     ===========
     champ de bytes
+
+    :param max_length: longueur maximale
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+    :param primary_key: valeur de cle primaire
+    :param unique: valeur unique
+    :param editable: valeur editable
+    :param check: fonction de validation
+
+    :raise BytesFieldValueError: si la valeur n'est pas valide
+    :raise ByteFieldOvervalueError: si la valeur est trop longue
+
+    :return: bytes
     """
 
     def __init__(
@@ -30,9 +43,9 @@ class ByteField(Field):
             raise field.BytesFieldValueError(f"{default} must be str or bytes")
 
         if default:
-            self._default = default.encode('utf-8') if isinstance(default, str) else default
-            if len(self._default) > self._max_length:
-                raise field.ByteFieldOvervalueError(f'{self._default} is too long')
+            default = default.encode('utf-8') if isinstance(default, str) else default
+            if len(default) > self._max_length:
+                raise field.ByteFieldOvervalueError(f'{default} is too long')
 
         super().__init__(
             nullable,

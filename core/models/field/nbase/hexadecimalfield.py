@@ -18,12 +18,22 @@ class HexadecimalField(Field):
     """
     HEXADECIMAL FIELD
     =================
-    nombres hexadecimal
+    champ de nombres en hexadecimal
+
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+    :param primary_key: valeur de cle primaire
+    :param unique: valeur unique
+    :param editable: valeur editable
+    :param check: fonction de validation
+
+    :raise FieldDefaultError: si la valeur par defaut n'est pas valide
+
+    :return: str
     """
 
     def __init__(
             self,
-            max_length: int,
             nullable: bool = True,
             default: Optional[str] = None,
             primary_key: bool = False,
@@ -31,9 +41,6 @@ class HexadecimalField(Field):
             editable: bool = True,
             check: Optional[Callable] = None,
     ):
-        self._max_length = max_length
-        if default and len(default) > max_length:
-            raise field.FieldDefaultError("default value is too long")
         if default and all(char in "0123456789ABCDEF" for char in default):
             raise field.FieldDefaultError("default value must be hexadecimal")
 
@@ -57,7 +64,11 @@ class HexadecimalField(Field):
     def to_baseN(self, base: int) -> str:
         return hexadecimal_to_baseN(self._value, base)
 
+    def load(self, value: str) -> str:
+        return value
+
+    def dump(self) -> str:
+        return self._value
+
     def _validated(self, value: Any) -> bool:
-        if len(value) > self._max_length:
-            return False
         return super()._validated(value) and all(char in "0123456789ABCDEF" for char in value)

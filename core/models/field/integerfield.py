@@ -10,6 +10,29 @@ class IntegerField(Field):
     INTEGER FIELD
     ============
     ensemble des entiers naturels IN
+
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+    :param primary_key: valeur de cle primaire
+    :param unique: valeur unique
+    :param editable: valeur editable
+    :param check: fonction de validation
+    :param min: valeur minimale
+    :param max: valeur maximale
+    :param max_digits: nombre de chiffres maximal
+    :param min_digits: nombre de chiffres minimal
+    :param interval: interval de valeur
+    :param choices: choix de valeur
+
+    :raise FieldDefaultError: si la valeur par defaut n'est pas valide
+    :raise FieldMinError: si la valeur est inferieur a la valeur minimale
+    :raise FieldMaxError: si la valeur est superieur a la valeur maximale
+    :raise FieldMaxDigitsError: si la valeur a plus de chiffres que le nombre maximal
+    :raise FieldMinDigitsError: si la valeur a moins de chiffres que le nombre minimal
+    :raise FieldIntervalError: si l'interval n'est pas valide
+    :raise FieldChoicesError: si la valeur n'est pas dans les choix
+
+    :return: int
     """
 
     def __init__(
@@ -106,11 +129,7 @@ class IntegerField(Field):
             raise field.IntegerFieldLoadError(f"{value} can't be loaded")
 
     def dump(self) -> int:
-        try:
-            value = int(value)
-            return int(self._value)
-        except ValueError:
-            raise field.IntegerFieldDumpError(f"{value} can't be encapsuled")
+        return int(self._value)
 
     def validate(self, value: Any) -> bool:
         if self._min and value < self._min:
@@ -134,17 +153,3 @@ class IntegerField(Field):
             raise field.FieldChoicesError(f"{value} must be in {self._choices}")
 
         return super()._validated(value)
-
-    def item(self):
-        self._item = super().item()
-        if self._min:
-            self._item += f" CHECK ({self._name} >= {self._min})"
-        if self._max:
-            self._item += f" CHECK ({self._name} <= {self._max})"
-        if self._max_digits:
-            self._item += f" CHECK (LENGTH({self._name}) <= {self._max_digits})"
-        if self._min_digits:
-            self._item += f" CHECK (LENGTH({self._name}) >= {self._min_digits})"
-        if self._choices:
-            self._item += f" CHECK ({self._name} IN {self._choices})"
-        return self._item

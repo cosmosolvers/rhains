@@ -18,12 +18,22 @@ class BinaryField(Field):
     """
     BINARY FIELD
     ============
-    nombres binaire
+    champ de nombres en binaire
+
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+    :param primary_key: valeur de cle primaire
+    :param unique: valeur unique
+    :param editable: valeur editable
+    :param check: fonction de validation
+
+    :raise FieldDefaultError: si la valeur par defaut n'est pas valide
+
+    :return: str
     """
 
     def __init__(
             self,
-            max_length: int,
             nullable: bool = True,
             default: Optional[int] = None,
             primary_key: bool = False,
@@ -31,9 +41,6 @@ class BinaryField(Field):
             editable: bool = True,
             check: Optional[Callable] = None,
     ):
-        self._max_length = max_length
-        if default and len(default) > max_length:
-            raise field.FieldDefaultError("default value is too long")
         if default and all(char in "01" for char in default):
             raise field.FieldDefaultError("default value must be binary")
 
@@ -57,7 +64,11 @@ class BinaryField(Field):
     def to_baseN(self, base: int) -> str:
         return binary_to_baseN(self._value, base)
 
+    def load(self, value: str) -> str:
+        return value
+
+    def dump(self) -> str:
+        return self._value
+
     def _validated(self, value: Any) -> bool:
-        if len(value) > self._max_length:
-            return False
         return super()._validated(value) and all(char in "01" for char in value)

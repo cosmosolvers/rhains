@@ -202,7 +202,7 @@ the keys
 --------
 1. many
     {'$': {} }
-    
+
 2. atomic
     {'$atomic': True} default False
 the meta

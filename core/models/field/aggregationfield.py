@@ -1,10 +1,10 @@
 from typing import Any, List, Tuple, Optional, Callable, Dict
-import inspect
 import json
 
 from .field import Field
 
 from exception.core.models import field
+from utils.validefunc import validate_function
 
 
 class AggregationField(Field):
@@ -12,6 +12,16 @@ class AggregationField(Field):
     AGGREGATION FIELD
     =================
     operation d'aggregation
+
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+    :param editable: valeur editable
+    :param check: fonction de validation
+    :param functions: fonctions d'aggregation
+
+    :raise FieldFunctionError: si la fonction n'est pas valide
+
+    :return: List[Tuple] | Tuple[Tuple]
     """
 
     def __init__(
@@ -23,7 +33,7 @@ class AggregationField(Field):
             functions: Optional[Dict[str, Callable]] = None
     ):
         for k, v in functions.items():
-            if not self._validate_function(v):
+            if not validate_function(v):
                 raise field.FieldFunctionError(f"{v} is not a valid function")
             setattr(self, k, self._wrap_function(v))
 
@@ -40,17 +50,13 @@ class AggregationField(Field):
     def dump(self) -> str:
         return json.dumps(self._value)
 
-    def _validate_function(self, func: Callable) -> bool:
-        signature = inspect.signature(func)
-        return len(signature.parameters) > 0 and next(iter(signature.parameters)).name == 'args'
-
     def _wrap_function(self, func: Callable) -> Callable:
         def wrapper():
             return func(*self._value)
         return wrapper
 
     def _validated(self, value: Any) -> bool:
-        return super()._validated(value) and isinstance(value, (List, Tuple))
+        return super()._validated(value) and isinstance(value, (List[Tuple], Tuple[Tuple]))
 
     def __contains__(self, item: Any) -> bool:
         return item in self._value

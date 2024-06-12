@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, Dict, Tuple
+from typing import Any, Callable, Optional, List
 import json
 
 from .field import Field
@@ -11,23 +11,43 @@ class CallableField(Field):
     CALLABLE FIELD
     ==============
     champ de functions
+
+    :param nullable: valeur nulle autorisée
+    :param unique: valeur unique
+    :param default: valeur par defaut
+    :param editable: valeur editable
+    :param choices: liste des fonctions
+
+    :raise CallableFieldValidationError: si la valeur n'est pas valide
+
+    :return: callable
     """
 
     def __init__(
         self,
         nullable: bool = True,
-        primary_key: bool = False,
         unique: bool = False,
+        default: Optional[Callable[..., Any]] = None,
         editable: bool = True,
-        params: Optional[Dict[str, object]] = None
+        choices: Optional[List[Callable]] = None
     ):
+        if not isinstance(default, Callable):
+            raise field.CallableFieldValidationError(f"{default} is not a valid function")
+
+        self._choices = choices
+        if choices:
+            for choice in choices:
+                if not callable(choice):
+                    raise field.CallableFieldValidationError(f"{choice} is not a valid function")
+
+            if default and not default not in choices:
+                raise field.CallableFieldValidationError(f"{default} is not in choices")
+
         super().__init__(
             nullable=nullable,
-            primary_key=primary_key,
             unique=unique,
             editable=editable,
         )
-        self._params = Tuple(params) if params else None
 
     def load(self, value: Any) -> Any:
         return json.loads(value)
@@ -36,19 +56,15 @@ class CallableField(Field):
         return json.dumps(self._value)
 
     def _validated(self, value: Any) -> bool:
-        if not self._wrap_function(value):
-            raise field.CallableFieldError(f'{value} is not supported arguments')
+        if self._choices and value not in self._choices:
+            raise field.CallableFieldValidationError(f"{value} is not in choices")
+
+        if not callable(value):
+            raise field.CallableFieldValidationError(f"{value} is not a valid function")
         return super()._validated(value)
 
-    def _wrap_function(self, func: Callable) -> Callable:
-        def wrapper(**kwargs):
-            if len(kwargs) != len(self._params):
-                raise field.CallableFieldArgumentError(f"{kwargs} number of arguments invalid")
-            for k, v in kwargs.items():
-                if k not in self._params:
-                    raise field.CallableFieldArgumentError(f"{k} is not argument")
-                if not isinstance(v, self._params[k]):
-                    raise field.CallableFieldArgumentTypeError(
-                        f"{v} not is {self._params} instance")
-            return self._value(**kwargs)
-        return wrapper
+    def __call__(self, *args, **kwargs):
+        func = self._value
+        if func is None:
+            raise field.CallableFieldValidationError("No callable set")
+        return func(*args, **kwargs)

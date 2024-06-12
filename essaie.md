@@ -465,7 +465,6 @@ finally:
 
 ```
 
-
 ```python
 class IntegerField(Field):
     def __init__(self, min_value=None, max_value=None):
@@ -615,9 +614,5 @@ def create_table(model_class):
 
 # Création de la table pour chaque modèle
 create_table(User)
-
-```
-
-```python
 
 ```

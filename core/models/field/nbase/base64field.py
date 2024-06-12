@@ -21,7 +21,18 @@ class Base64Field(Field):
     """
     BASE64 FIELD
     ============
-    nombres base64
+    champ de nombres en base64
+
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+    :param primary_key: valeur de cle primaire
+    :param unique: valeur unique
+    :param editable: valeur editable
+    :param check: fonction de validation
+
+    :raise FieldDefaultError: si la valeur par defaut n'est pas valide
+
+    :return: str
     """
 
     def __init__(
@@ -55,6 +66,12 @@ class Base64Field(Field):
 
     def to_baseN(self, base: int) -> str:
         return base64_to_baseN(self._value, base)
+
+    def load(self, value: str) -> str:
+        return value
+
+    def dump(self) -> str:
+        return self._value
 
     def _validated(self, value: Any) -> bool:
         return super()._validated(value) and all(char in basexs for char in value)

@@ -9,7 +9,16 @@ class BooleanField(Field):
     """
     BOOLEAN FIELD
     =============
-    True (1) False (0)
+    champ booleen True (1) False (0)
+
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+    :param editable: valeur editable
+
+    :raise BooleanFieldValueError: si la valeur par defaut n'est pas valide
+    :raise FieldDefaultError: si la valeur par defaut n'est pas valide
+
+    :return: int
     """
 
     def __init__(

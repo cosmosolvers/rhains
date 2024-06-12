@@ -172,7 +172,7 @@ operator:
 - =                 Égale
 - <>                Pas égale
 - !=                Pas égale
-- >                 Supérieur à
+
 - <                 Inférieur à
 - >=                Supérieur ou égale à
 - <=                Inférieur ou égale à

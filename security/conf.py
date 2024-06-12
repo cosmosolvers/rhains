@@ -73,10 +73,7 @@ MEDIA = {
     }
 }
 
-FIELD_CONSTRAINTS = {
-    
-}
-
+# chargé les configurations avec celui de l'utilisateur avant utilisation
 rhconf = {
     'project': {k.lower(): v for k, v in PROJECT},
     'server': {

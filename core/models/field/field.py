@@ -4,6 +4,7 @@ from typing import Any, Optional, Callable
 
 # exception class
 from exception.core.models import field
+from utils.validefunc import validate_function_ckeck, validate_function_default
 
 
 class Field:
@@ -11,6 +12,22 @@ class Field:
     FIELD
     =====
     class de base pour les champs
+
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+    :param primary_key: valeur de cle primaire
+    :param unique: valeur unique
+    :param editable: valeur editable
+    :param check: fonction de validation
+
+    :raise FieldUniqueError: si le champ est unique et nullable
+    :raise FieldPrimarykeyError: si le champ est primaire et nullable
+    :raise FieldDefaultError: si la valeur par defaut n'est pas valide
+    :raise FieldCheckError: si la fonction de validation n'est pas valide
+    :raise FieldNullableError: si la valeur est nulle et non autorisée
+    :raise FieldEditableError: si la valeur est non editable
+
+    :return: None
     """
 
     def __init__(
@@ -28,19 +45,29 @@ class Field:
             check: Callable[..., Any] | None = None,
     ):
         self._nullable = nullable
-        self._unique = unique
         self._editable = editable
-        self._primarykey = primary_key
-        self._default = default if not callable(default) else self.default()
-        self._check = check
-
+        self._unique = unique
         self.__validated_unique()
-        self.__validated_primarykey()
-        self.__validated_check()
-        self.__validated_default()
 
-        self._value = self._default
+        self._primarykey = primary_key
+        self.__validated_primarykey()
+
+        if default and not callable(default):
+            self._value = default
+        else:
+            if not validate_function_default(default):
+                raise field.FieldDefaultError(f"{default} is not a valid function")
+            self._value = default()
+
+        if check and not callable(check):
+            raise field.FieldCheckError(f"{check} is not a valid function")
+        else:
+            if not validate_function_ckeck(check):
+                raise field.FieldCheckError(f"{check} is not a valid function")
+            self._check = check
+
         self.__name = None
+        self.__validated_default()
 
     def __validated_unique(self):
         if self._nullable and self._unique:
@@ -51,19 +78,10 @@ class Field:
             raise field.FieldPrimarykeyError("nullable field can't be primary key")
         self._unique = True
 
-    def __validated_check(self):
-        if not self._wrap_function(self._check):
-            raise field.FieldCheckError(f"{self._check} is not a valid function")
-
-    def _wrap_function(self, check: Callable) -> Callable:
-        def wrapper():
-            return check(self._value)
-        return wrapper
-
     def __validated_default(self):
-        if self._default:
-            if not self._check(self._default):
-                raise field.FieldDefaultError(f"{self._default} doesn't match the check")
+        if self._value:
+            if self._check and not self._check(self._value):
+                raise field.FieldDefaultError(f"{self._value} doesn't match the check")
         else:
             if not self._nullable:
                 raise field.FieldDefaultError("default value is required")
@@ -85,9 +103,9 @@ class Field:
     # valider une donnée avant l'ecriture dans la base de donnée
     def _validated(self, value: Any) -> bool:
         if value is None and not self._nullable:
-            raise field.FieldNullableError(f"{self.__name} can't be null")
+            raise field.FieldNullableError(f"{self._value} can't be null")
         if self._check and not self._check(value):
-            raise field.FieldCheckError(f"{self.__name} is not valid")
+            raise field.FieldCheckError(f"{self._value} is not valid")
         return True
 
     # le nom sur lequel est stocker le champ
@@ -97,7 +115,7 @@ class Field:
     def __set__(self, instance, value):
         # si une value existe ne pas la modifier
         if instance.__dict__.get(self.__name) and not self._editable:
-            raise field.FieldEditableError(f"{self.__name} can't be modified")
+            raise field.FieldEditableError(f"{self._value} can't be modified")
         if self._validated(value):
             instance.__dict__[self.__name] = value
             self._value = value
@@ -105,7 +123,7 @@ class Field:
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return instance.__dict__.get(self.__name, self._default)
+        return instance.__dict__.get(self.__name, self._value)
 
 
 # class Field:

@@ -1,5 +1,5 @@
 """"""
-from .result import Success, Fails
+from ..result import Success, Fails
 from .dict import StoredKey, StoredKeyList
 from .scalar import Vector, VectorList
 
