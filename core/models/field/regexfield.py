@@ -1,2 +1,0 @@
-class RegexField:
-    pass

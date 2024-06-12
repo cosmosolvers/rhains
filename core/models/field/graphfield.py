@@ -13,6 +13,17 @@ class GraphField(Field):
     GRAPH FIELD
     ===========
     Champ pour les objets graphiques (graphes)
+
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+    :param primary_key: valeur de cle primaire
+    :param unique: valeur unique
+    :param editable: valeur editable
+    :param check: fonction de validation
+
+    :raise GraphFieldError: si la valeur par defaut n'est pas un graphe valide
+
+    :return: networkx.Graph
     """
 
     def __init__(
