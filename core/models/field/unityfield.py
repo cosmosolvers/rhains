@@ -5,14 +5,14 @@ from .field import Field
 from exception.core.models import field
 
 
-class CurrencyField(Field):
+class ExchangeField(Field):
     """
     CURRENCY FIELD
     ==============
 
     champ de currency
 
-    :param convert: list des autres currency et leur function de conversion vers celui -ci
+    :param convert: list des autres unité et leur function de conversion vers celui -ci
     :param nullable: valeur nulle autorisée
     :param default: valeur par defaut
     :param primary_key: valeur de cle primaire
@@ -20,7 +20,7 @@ class CurrencyField(Field):
     :param editable: valeur editable
     :param check: fonction de validation
 
-    :raise CurrencyFieldConvertError: si la fonction de conversion n'est pas valide
+    :raise ExchangeConvertError: si la fonction de conversion n'est pas valide
 
     :return: str
     """
@@ -47,7 +47,7 @@ class CurrencyField(Field):
         for i in convert:
             k, v = i.popitem()
             if not callable(v) or not self._validate_function_two_args(v):
-                raise field.CurrencyFieldConvertError(f"{v} is not a valid function")
+                raise field.ExchangeConvertError(f"{v} is not a valid function")
             setattr(self, k, self._wrap_function(v))
 
     def load(self, value: str) -> str:

@@ -10,6 +10,18 @@ class MatrixField(Field):
     MATRIX FIELD
     ============
     Champ pour stocker et manipuler des matrices
+
+    :param nullable: valeur nulle autorisée
+    :param default: valeur par defaut
+    :param primary_key: valeur de cle primaire
+    :param unique: valeur unique
+    :param editable: valeur editable
+    :param check: fonction de validation
+
+    :raise MatrixFieldError: si la valeur par defaut n'est pas valide
+    :raise FieldNullableError: si la valeur est nulle et non autorisée
+
+    :return: list[list[Any]]
     """
 
     def __init__(

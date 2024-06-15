@@ -16,7 +16,7 @@ from .bytefield import ByteField
 from .callablefield import CallableField
 from .charfield import CharField
 from .colorfield import HexadecimalColorField
-from .currencyfield import CurrencyField
+from .unityfield import ExchangeField
 from .counterfield import CounterField
 
 from .datefield import DateField
@@ -53,7 +53,7 @@ from .logfield import LOGField
 from .manytomanyfield import ManyToManyField
 from .mapfield import MapField
 from .matrixfield import MatrixField
-from .measurefield import MeasureField
+from .unityfield import MeasureField
 from .mediafield import MediaField
 
 from .onetoonefield import OneToOneField
@@ -109,7 +109,7 @@ __all__ = [
     'CharField',
     'ChronologicalField',
     'HexadecimalColorField',
-    'CurrencyField',
+    'ExchangeField',
     'CounterField',
 
     'DateField',

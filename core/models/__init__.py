@@ -17,7 +17,7 @@ from .field import (
     CharField,
     ChronologicalField,
     ColorField,
-    CurrencyField,
+    ExchangeField,
     CounterField,
 
     DateField,
@@ -122,7 +122,7 @@ __all__ = [
     'CharField',
     'ChronologicalField',
     'ColorField',
-    'CurrencyField',
+    'ExchangeField',
     'CounterField',
 
     'DateField',
