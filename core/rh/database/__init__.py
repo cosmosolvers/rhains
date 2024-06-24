@@ -1,6 +1,4 @@
 """databse connection adapter"""
-
-from .adapter import Adapter
 from .root.sqlite import (
     SqliteAdapter, SqliteCRUD, SqliteDatacrud, SqliteTablecrud
 )

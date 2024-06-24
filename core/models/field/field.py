@@ -44,6 +44,8 @@ class Field:
             # validateur de donnée (definir une fonction de validation) ex: lambda x: x > 0
             check: Callable[..., Any] | None = None,
     ):
+        self._value = None
+        self._check = None
         self._nullable = nullable
         self._editable = editable
         self._unique = unique
@@ -52,47 +54,53 @@ class Field:
         self._primarykey = primary_key
         self.__validated_primarykey()
 
-        if default and not callable(default):
-            self._value = default
-        else:
-            if not validate_function_default(default):
-                raise field.FieldDefaultError(f"{default} is not a valid function")
-            self._value = default()
+        if default:
+            if not callable(default):
+                self._value = default
+            else:
+                if not validate_function_default(default):
+                    raise field.FieldDefaultError(f"{default} is not a valid function")
+                self._value = default()
+        self.__validated_default(default)
 
-        if check and not callable(check):
-            raise field.FieldCheckError(f"{check} is not a valid function")
-        else:
-            if not validate_function_ckeck(check):
+        if check:
+            if not callable(check):
                 raise field.FieldCheckError(f"{check} is not a valid function")
-            self._check = check
+            else:
+                if not validate_function_ckeck(check):
+                    raise field.FieldCheckError(f"{check} is not a valid function")
+                self._check = check
 
         self.__name = None
-        self.__validated_default()
 
     def __validated_unique(self):
         if self._nullable and self._unique:
             raise field.FieldUniqueError("nullable field can't be unique")
 
     def __validated_primarykey(self):
-        if self._nullable and self._primarykey:
-            raise field.FieldPrimarykeyError("nullable field can't be primary key")
-        self._unique = True
+        if self._primarykey:
+            if self._nullable:
+                raise field.FieldPrimarykeyError("nullable field can't be primary key")
+            self._unique = True
 
-    def __validated_default(self):
-        if self._value:
-            if self._check and not self._check(self._value):
+    def __validated_default(self, default):
+        if default:
+            if self._check and not self._check(default):
                 raise field.FieldDefaultError(f"{self._value} doesn't match the check")
         else:
             if not self._nullable:
                 raise field.FieldDefaultError("default value is required")
-            if self._unique:
+            if self._unique is True:
                 raise field.FieldDefaultError("default value is required")
-            if self._primary_key:
+            if self._primarykey:
                 raise field.FieldDefaultError("default value is required")
+            if not self._editable:
+                raise field.FieldEditableError("default value is required")
 
     # convertir une valeur de la base de donnée en donnée python
     # apres la lecture dans la base de donnée
-    def load(self, value: Any) -> Any:
+    @staticmethod
+    def load(value: Any) -> Any:
         raise NotImplementedError
 
     # convertir une donnée python en valeur de la base de donnée
@@ -124,20 +132,3 @@ class Field:
         if instance is None:
             return self
         return instance.__dict__.get(self.__name, self._value)
-
-
-# class Field:
-
-#     value = None
-
-#     def __init__(
-#         auto_updated: bool=False, # definit comme etant mis a jour automatiquement
-#         auto_incr: bool=False, # definit comme etant incrementer automatiquement
-#         choices: Tuple=None, # definit une liste de choix possibles *
-#         max_length: int=None, # definit une longueur maximale
-#         min_length: int=None, # definit une longueur minimale
-#         power_of_ten: int=None, # definit la puissance de 10
-#         on_delete: str=None, # definit une action a effectuer lors de la suppression
-#         on_update: str=None, # definit une action a effectuer lors de la mise a jour
-#     ):
-#         pass

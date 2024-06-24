@@ -2,7 +2,7 @@
 from typing import Any
 import json
 
-from exception.core.rh.database import rhesult as rhs
+from exception.core.rh import result as rhs
 
 
 class Scalar:

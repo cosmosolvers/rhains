@@ -64,3 +64,31 @@ HAVING = {
     # average value (list, tuple)
     '$avg': lambda *args: sum(args) / len(args),
 }
+
+
+cond = [
+    '$lt', '$gt', '$in',
+    '$nin', '$ne', '$le',
+    '$ge', '$$', '$like'
+]
+
+# '$max', '$min', '$sum',
+# '$avg', '$rm', '$add'
+
+# '$commit', '$sort', '$limit', '$skip', '$count', '$group', '$having'
+
+
+def foreignkey(values, model):
+    for k, v in values.items():
+        if isinstance(v, dict):
+            for key, value in v.items():
+                attr = getattr(model, k)
+                if key not in cond:
+                    if not hasattr(attr, '_to'):
+                        raise ValueError(f"{key} is not a valid condition")
+                    else:
+                        v['table'] = attr._to.__name__.lower()
+
+
+def validated_args(**kwargs):
+    pass

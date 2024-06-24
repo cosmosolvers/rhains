@@ -75,7 +75,7 @@ MEDIA = {
 
 # chargé les configurations avec celui de l'utilisateur avant utilisation
 rhconf = {
-    'project': {k.lower(): v for k, v in PROJECT},
+    'project': {k.lower(): v for k, v in PROJECT.items()},
     'server': {
         'secretkey': SERVER.get('SECRET_KEY'),
         'host': [host for host in SERVER.get('HOST')],

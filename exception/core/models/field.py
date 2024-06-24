@@ -59,3 +59,11 @@ class FieldMaxDigitsError(RhainsBaseException):
 
 class FieldMinDigitsError(RhainsBaseException):
     ...
+
+
+class FieldPrimarykeyError(RhainsBaseException):
+    ...
+
+
+class FieldUniqueError(RhainsBaseException):
+    ...

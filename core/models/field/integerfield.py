@@ -94,7 +94,7 @@ class IntegerField(Field):
         if self._min_digits and len(str(self.default)) < self._min_digits:
             raise field.FieldDefaultError(f"default value must have {self._min_digits} digits")
 
-    def _validate_interval(self, interval: Optional[List[int, int]]):
+    def _validate_interval(self, interval: Optional[List[int]]):
         if interval:
             if self._max or self.min:
                 raise field.FieldOverUseError("if interval define can't be defined min or max")

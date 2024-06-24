@@ -48,6 +48,8 @@ class Model(metaclass=ModelMeta):
         for k, v in data.items():
             if hasattr(v, 'primary_key') and v.primary_key:
                 return v
+        else:
+            return super().__str__()
 
     class Meta:
         database = 'default'

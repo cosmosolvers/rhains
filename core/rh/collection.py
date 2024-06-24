@@ -201,7 +201,7 @@ s'appliquent uniquement sur les champs
 the keys
 --------
 1. many
-    {'$': {} }
+    {'$': [] }
 
 2. atomic
     {'$atomic': True} default False
@@ -220,6 +220,7 @@ from .database import (
     ArangoDBCRUD
 )
 from .result.scalar import Scalar, Matrix
+from utils.condition import get_condition
 
 instruct = {
     'sqlite': SqliteCRUD,
@@ -279,12 +280,12 @@ class Collection:
         """
         instance = self.__model(**kwargs)
         instance_fields = instance.__to_dict()
-        result = self.__connexion.create(self._model.__name__, **instance_fields)
+        result = self.__connexion.create(self._model.__name__.lower(), **instance_fields)
         instance = self.__model(**result)
         return Scalar(instance, self)
 
-    def all(self, **kwargs) -> Matrix | None:
-        result = self.__connexion.all(self._model.__name__)
+    def all(self) -> Matrix | None:
+        result = self.__connexion.all(self._model.__name__.lower())
         return Matrix(self, *[self._model(**item) for item in result]) if result else None
 
     def filter(self, **kwargs) -> Matrix | None:
@@ -292,10 +293,13 @@ class Collection:
         kwargs: {
             'field': 'value',
             'field': 'value',
+            'field': {'$lt': 'value'},
+            'field': {'field': 'value', 'field': 'value'}
             ...
         }
         """
-        result = self.__connexion.filter(self._model.__name__, **kwargs)
+        get_condition(**kwargs)
+        result = self.__connexion.filter(self._model.__name__.lower(), **kwargs)
         return Matrix(self, *[self._model(**item) for item in result]) if result else None
 
     def get(self, **kwargs) -> Scalar | None:
@@ -306,7 +310,7 @@ class Collection:
             ...
         }
         """
-        result = self.__connexion.get(self._model.__name__, **kwargs)
+        result = self.__connexion.get(self._model.__name__.lower(), **kwargs)
         if not result:
             return None
         if isinstance(result, dict):
@@ -329,7 +333,7 @@ class Collection:
         if '$commit' not in kwargs:
             raise db.DataBaseConditionError('missing commit')
         commit = kwargs.pop('$commit')
-        result = self.__connexion.update(self._model.__name__, **kwargs, **commit)
+        result = self.__connexion.update(self._model.__name__.lower(), **kwargs, **commit)
         if not result:
             raise db.DataBaseUpdateError('update failed')
         if isinstance(result, dict):
@@ -345,4 +349,4 @@ class Collection:
             ...
         }
         """
-        self.__connexion.delete(self._model.__name__, **kwargs)
+        self.__connexion.delete(self._model.__name__.lower(), **kwargs)
