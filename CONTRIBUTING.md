@@ -1,6 +1,5 @@
 # CONTRIBUTING
 
-
 Titre : "Invitation à contribuer à notre projet de création d'un framework web Python"
 
 Salut à tous les passionnés de Python et de développement web,
