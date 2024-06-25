@@ -87,3 +87,7 @@ class FieldMediaPathError(RhainsBaseException):
 
 class FieldFileNotFoundError(RhainsBaseException):
     ...
+
+
+class DateFieldValidationError(RhainsBaseException):
+    ...

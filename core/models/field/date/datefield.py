@@ -1,5 +1,5 @@
 from typing import Any, Optional, List
-from datetime import datetime, timedelta
+from datetime import datetime
 import pytz
 
 from ..field import Field
@@ -29,13 +29,6 @@ class DateField(Field):
         unique: bool = False,
         editable: bool = True,
     ):
-        super().__init__(
-            nullable=nullable,
-            default=default,
-            primary_key=primary_key,
-            unique=unique,
-            editable=editable,
-        )
         self._format = format
         self._tz = tz
         self._min_date = min_date
@@ -43,16 +36,27 @@ class DateField(Field):
         self._auto_update = auto_updated
         self._auto_created = auto_created
         if self._auto_created:
-            self._value = datetime.now().strftime(self._format[0])
+            default = self.__parse_date(datetime.now().strftime(self._format[0]))
+
+        super().__init__(
+            nullable=nullable,
+            default=default,
+            primary_key=primary_key,
+            unique=unique,
+            editable=editable,
+        )
 
     def __set__(self, instance, value):
-        if isinstance(value, str):
-            value = self.__parse_date(value)
+        if not isinstance(value, str):
+            try:
+                value = value.strftime(self._format[0])
+            except Exception as e:
+                raise field.DateFieldValidationError(e)
+        value = self.__parse_date(value)
+        self._validated(value)
         return super().__set__(instance, value)
 
-    def _validated(self, value: Any) -> bool:
-        if not self._validated(value):
-            raise field.DateFieldValidationError("Invalid date value")
+    def _validated(self, value: datetime) -> bool:
         if self._min_date and value < self._min_date:
             raise field.DateFieldValidationError(f"Date cannot be earlier than {self._min_date}")
         if self._max_date and value > self._max_date:
@@ -60,7 +64,7 @@ class DateField(Field):
         return super()._validated(value)
 
     def __parse_date(self, value: str) -> datetime:
-        for fmt in self.format:
+        for fmt in self._format:
             try:
                 date = datetime.strptime(value, fmt)
                 if self._tz:
@@ -69,39 +73,10 @@ class DateField(Field):
                 return date
             except ValueError:
                 continue
-        raise field.DateFieldValidationError(f"Date format should be one of {self.format}")
+        raise field.DateFieldValidationError(f"Date format should be one of {self._format}")
 
     def load(self, value: str) -> datetime:
         return self.__parse_date(value)
 
-    def dump(self) -> Any:
-        return self._value.strftime(self._format[0])
-
-    def __contains__(self, item: datetime) -> bool:
-        return self._min_date <= item <= self._max_date
-
-    def __lt__(self, other: datetime) -> bool:
-        return self._value < other
-
-    def __le__(self, other: datetime) -> bool:
-        return self._value <= other
-
-    def __gt__(self, other: datetime) -> bool:
-        return self._value > other
-
-    def __ge__(self, other: datetime) -> bool:
-        return self._value >= other
-
-    def __add__(self, other: timedelta) -> datetime:
-        return self._value + other
-
-    def __sub__(self, other: timedelta) -> datetime:
-        return self._value - other
-
-    def __iadd__(self, other: timedelta) -> 'DateField':
-        self._value = self.__add__(other)
-        return self
-
-    def __isub__(self, other: timedelta) -> 'DateField':
-        self._value = self.__sub__(other)
-        return self
+    def dump(self, value: datetime) -> Any:
+        return value.strftime(self._format[0])

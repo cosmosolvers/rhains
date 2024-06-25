@@ -99,7 +99,7 @@ class Field:
 
     # convertir une valeur de la base de donnée en donnée python
     # apres la lecture dans la base de donnée
-    def load(value: Any) -> Any:
+    def load(self, value: Any) -> Any:
         raise NotImplementedError
 
     # convertir une donnée python en valeur de la base de donnée
