@@ -86,7 +86,7 @@ class Field:
     def __validated_default(self, default):
         if default:
             if self._check and not self._check(default):
-                raise field.FieldDefaultError(f"{self._value} doesn't match the check")
+                raise field.FieldDefaultError(f"{default} doesn't match the check")
         else:
             if not self._nullable:
                 raise field.FieldDefaultError("default value is required")
@@ -99,21 +99,20 @@ class Field:
 
     # convertir une valeur de la base de donnée en donnée python
     # apres la lecture dans la base de donnée
-    @staticmethod
     def load(value: Any) -> Any:
         raise NotImplementedError
 
     # convertir une donnée python en valeur de la base de donnée
     # avant l'ecriture dans la base de donnée
-    def dump(self) -> Any:
+    def dump(self, value: Any) -> Any:
         raise NotImplementedError
 
     # valider une donnée avant l'ecriture dans la base de donnée
     def _validated(self, value: Any) -> bool:
         if value is None and not self._nullable:
-            raise field.FieldNullableError(f"{self._value} can't be null")
+            raise field.FieldNullableError(f"{value} can't be null")
         if self._check and not self._check(value):
-            raise field.FieldCheckError(f"{self._value} is not valid")
+            raise field.FieldCheckError(f"{value} is not valid")
         return True
 
     # le nom sur lequel est stocker le champ
@@ -123,7 +122,7 @@ class Field:
     def __set__(self, instance, value):
         # si une value existe ne pas la modifier
         if instance.__dict__.get(self.__name) and not self._editable:
-            raise field.FieldEditableError(f"{self._value} can't be modified")
+            raise field.FieldEditableError(f"{value} can't be modified")
         if self._validated(value):
             instance.__dict__[self.__name] = value
             self._value = value
