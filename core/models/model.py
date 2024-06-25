@@ -20,6 +20,10 @@ class ModelMeta(type):
 
 
 class Model(metaclass=ModelMeta):
+    """
+    MODEL
+    =====
+    """
     def __init__(self, **kwargs):
         for field_name, field_instance in self._fields.items():
             if field_name in kwargs:
@@ -42,6 +46,10 @@ class Model(metaclass=ModelMeta):
 
     def __to_dict(self):
         return {key: getattr(self, key) for key in self._fields}
+
+    @property
+    def mapping(self):
+        return self.__to_dict()
 
     def __str__(self) -> str:
         data = self.__to_dict()

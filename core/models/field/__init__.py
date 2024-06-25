@@ -1,7 +1,3 @@
-from .aggregationfield import AggregationField
-from .arrayfield import ArrayField
-from .audiofield import AudioField
-
 from .nbase import (
     BinaryField,
     HexadecimalField,
@@ -10,53 +6,61 @@ from .nbase import (
     Base32Field,
     BaseNField
 )
-from .booleanfield import BooleanField
-from .bytefield import ByteField
+from .date import (
+    DateField,
+    DateTimeField,
+    DateTimeOffSetField,
+    TimeField
+)
+from .file import (
+    AudioField,
+    FileField,
+    ImageField,
+    MediaField
+)
+from .mapping import (
+    AggregationField,
+    ArrayField,
+    GeographicalField,
+    MatrixField
+)
+from .numeric import (
+    BooleanField,
+    CounterField,
+    DecimalField,
+    IntegerField,
+    PercentField
+)
+from .object import (
+    CallableField,
+    GeometryField,
+    GraphField,
+    ObjectField,
+    UUIDField
+)
+from .ship import (
+    ForeignKey,
+    ForeignShip,
+    ManyToManyField,
+    ManyToManyShip,
+    OneToOneField,
+    OneToOneShip
+)
+from .string import (
+    ByteField,
+    CharField,
+    HexadecimalColorField,
+    ExchangeField,
+    EmailField,
+    FilePathField,
+    GenomicField,
+    IPAddressField,
+    PasswordField,
+    PhoneField,
+    TextField,
+    URLField
+)
 
-from .callablefield import CallableField
-from .charfield import CharField
-from .colorfield import HexadecimalColorField
-from .unityfield import ExchangeField
-from .counterfield import CounterField
-
-from .datefield import DateField
-from .datetimefield import DateTimeField
-from .decimalfield import DecimalField
-from .datetimeoffsetfield import DateTimeOffSetField
-
-from .emailfield import EmailField
-
-from .filefield import FileField
-from .filepathfield import FilePathField
-from .foreignkeyfield import ForeignKey
-
-from .genomicfield import GenomicField
-from .geometryfield import GeometryField
-from .geographicalfield import GeographicalField
-from .graphfield import GraphField
-
-from .imagefield import ImageField
-from .integerfield import IntegerField
-from .ipaddressfield import IPAddressField
-
-from .manytomanyfield import ManyToManyField
-from .manytomanyship import ManyToManyShip
-from .matrixfield import MatrixField
-from .mediafield import MediaField
-
-from .onetoonefield import OneToOneField
-from .onetooneship import OneToOneShip
-from .objectfield import ObjectField
-
-from .passwordfield import PasswordField
-from .percentfield import PercentField
-from .phonefield import PhoneField
-
-from .textfield import TextField
-from .timefield import TimeField
-
-from .urlfield import URLField
-from .uuidfield import UUIDField
 
 __all__ = [
     'AggregationField',
@@ -83,6 +87,7 @@ __all__ = [
     'FileField',
     'FilePathField',
     'ForeignKey',
+    'ForeignShip',
     'GenomicField',
     'GeometryField',
     'GeographicalField',

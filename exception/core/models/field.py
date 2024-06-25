@@ -67,3 +67,23 @@ class FieldPrimarykeyError(RhainsBaseException):
 
 class FieldUniqueError(RhainsBaseException):
     ...
+
+
+class AggregationFieldValueError(RhainsBaseException):
+    ...
+
+
+class FieldMediaFormatError(RhainsBaseException):
+    ...
+
+
+class FieldFileSizeError(RhainsBaseException):
+    ...
+
+
+class FieldMediaPathError(RhainsBaseException):
+    ...
+
+
+class FieldFileNotFoundError(RhainsBaseException):
+    ...

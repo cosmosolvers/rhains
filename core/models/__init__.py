@@ -8,6 +8,7 @@ from .field import (
     BaseNField,
     BooleanField,
     ByteField,
+    BinaryField,
     CallableField,
     CharField,
     CounterField,
@@ -20,6 +21,7 @@ from .field import (
     FileField,
     FilePathField,
     ForeignKey,
+    ForeignShip,
     GenomicField,
     GeometryField,
     GeographicalField,
@@ -44,7 +46,7 @@ from .field import (
     URLField,
     UUIDField
 )
-from model import Model
+from .model import Model
 
 
 __all__ = [
@@ -59,6 +61,7 @@ __all__ = [
     'BaseNField',
     'BooleanField',
     'ByteField',
+    'BinaryField',
     'CallableField',
     'CharField',
     'CounterField',
@@ -71,6 +74,7 @@ __all__ = [
     'FileField',
     'FilePathField',
     'ForeignKey',
+    'ForeignShip',
     'GenomicField',
     'GeometryField',
     'GeographicalField',
