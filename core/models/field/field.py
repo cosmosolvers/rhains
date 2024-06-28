@@ -52,7 +52,9 @@ class Field:
         self.__validated_unique()
 
         self._primarykey = primary_key
-        self.__validated_primarykey()
+        if self._primarykey:
+            self._unique = True
+            self._nullable = False
 
         if default:
             if not callable(default):
@@ -76,12 +78,6 @@ class Field:
     def __validated_unique(self):
         if self._nullable and self._unique:
             raise field.FieldUniqueError("nullable field can't be unique")
-
-    def __validated_primarykey(self):
-        if self._primarykey:
-            if self._nullable:
-                raise field.FieldPrimarykeyError("nullable field can't be primary key")
-            self._unique = True
 
     def __validated_default(self, default):
         if default:

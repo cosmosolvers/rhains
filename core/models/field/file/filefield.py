@@ -9,6 +9,13 @@ from security.conf import rhconf
 from exception.core.models import field
 
 
+__file = {
+    'AudioField': 'audio',
+    'ImageField': 'img',
+    'MediaField': 'video'
+}
+
+
 class FileField(Field):
     """
     FILE FIELD
@@ -31,14 +38,23 @@ class FileField(Field):
         nullable=True,
         default: Optional[str] = None
     ):
-        path = ''
-        if 'file' not in rhconf.get('media'):
-            path = rhconf.get('media').get('file').get('path')
-        else:
+        self.__media = rhconf.media
+        if not self.__media:
+            raise field.FieldFileError('media file not found')
+
+        self.__file = getattr(self.__media, __file.get(self.__class__.__name__))
+        if not self.__file:
+            self.__file = self.__media.file
+
+        if not self.__file:
+            raise field.FileFieldError('media file not found')
+
+        path = self.__file.path
+        if not path:
             raise field.FieldMediaPathError("media file path not found in configuration file")
-        local = rhconf.get('media').get('file').get('path').get('local')
-        self._upload = upload_to if not local else os.path.join(
-            rhconf.get('project').get('path'),
+
+        self._upload = upload_to if not self.__file.local else os.path.join(
+            rhconf.project.path,
             path,
             upload_to or ''
         )
@@ -47,6 +63,7 @@ class FileField(Field):
         super().__init__(nullable=nullable, default=default)
         if not os.path.exists(self._upload):
             os.makedirs(self._upload)
+        # taille du fichier
         self._size = 0
 
     def __upload_file(self, file_content: bytes) -> str:
@@ -55,7 +72,7 @@ class FileField(Field):
         with open(url, 'wb') as f:
             f.write(file_content)
         self._size = os.path.getsize(url)
-        SIZE = rhconf.get('media').get('prefered').get('size')
+        SIZE = self.__file.prefered.size
         if SIZE != -1 and self._size > SIZE:
             os.remove(url)
             raise field.FieldFileSizeError(f"file size {self._size} is too large")

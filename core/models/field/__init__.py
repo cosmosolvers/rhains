@@ -9,7 +9,6 @@ from .nbase import (
 from .date import (
     DateField,
     DateTimeField,
-    DateTimeOffSetField,
     TimeField
 )
 from .file import (

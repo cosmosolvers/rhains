@@ -1,4 +1,4 @@
-from typing import Any, Optional, List
+from typing import Any, Optional
 from datetime import datetime
 import pytz
 
@@ -17,10 +17,10 @@ class DateField(Field):
 
     def __init__(
         self,
-        format: Optional[List[str]] = ['%Y-%m-%d'],
+        format: Optional[str] = '%Y-%m-%d',
         tz: Optional[str] = None,
-        max_date: Optional[datetime] = None,
-        min_date: Optional[datetime] = None,
+        max_date: Optional[datetime | str] = None,
+        min_date: Optional[datetime | str] = None,
         auto_updated: bool = False,
         auto_created: bool = False,
         nullable: bool = True,
@@ -32,11 +32,27 @@ class DateField(Field):
         self._format = format
         self._tz = tz
         self._min_date = min_date
+        if self._min_date:
+            if not isinstance(self._min_date, str):
+                try:
+                    self._min_date = self._min_date.strftime(self._format)
+                except Exception as e:
+                    raise field.DateFieldFormatError(e)
+            self._min_date = self.__parse_time(self._min_date)
+
         self._max_date = max_date
+        if self._max_date:
+            if not isinstance(self._max_date, str):
+                try:
+                    self._max_date = self._max_date.strftime(self._format)
+                except Exception as e:
+                    raise field.TimeFieldFormatError(e)
+            self._max_date = self.__parse_time(self._max_date)
+
         self._auto_update = auto_updated
         self._auto_created = auto_created
         if self._auto_created:
-            default = self.__parse_date(datetime.now().strftime(self._format[0]))
+            default = self.__parse_date(datetime.now().strftime(self._format))
 
         super().__init__(
             nullable=nullable,
@@ -49,7 +65,7 @@ class DateField(Field):
     def __set__(self, instance, value):
         if not isinstance(value, str):
             try:
-                value = value.strftime(self._format[0])
+                value = value.strftime(self._format)
             except Exception as e:
                 raise field.DateFieldValidationError(e)
         value = self.__parse_date(value)
@@ -64,19 +80,17 @@ class DateField(Field):
         return super()._validated(value)
 
     def __parse_date(self, value: str) -> datetime:
-        for fmt in self._format:
-            try:
-                date = datetime.strptime(value, fmt)
-                if self._tz:
-                    tz = pytz.timezone(self._tz)
-                    date = tz.localize(date)
-                return date
-            except ValueError:
-                continue
-        raise field.DateFieldValidationError(f"Date format should be one of {self._format}")
+        try:
+            date = datetime.strptime(value, self._format)
+            if self._tz:
+                tz = pytz.timezone(self._tz)
+                date = tz.localize(date)
+            return date
+        except ValueError:
+            raise field.DateFieldValidationError(f"Date format should be one of {self._format}")
 
     def load(self, value: str) -> datetime:
         return self.__parse_date(value)
 
     def dump(self, value: datetime) -> Any:
-        return value.strftime(self._format[0])
+        return value.strftime(self._format)

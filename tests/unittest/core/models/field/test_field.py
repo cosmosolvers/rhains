@@ -103,7 +103,7 @@ class TestErrorFieldWithNullable(unittest.TestCase):
 class TestErrorFieldWithPrimarykey(unittest.TestCase):
 
     def test_by_nullable(self):
-        with self.assertRaises(field.FieldPrimarykeyError) as err:
+        with self.assertRaises(field.FieldDefaultError) as err:
             Inheritance(primary_key=True, nullable=True)
             self.assertEqual(err.msg, "nullable field can't be primary key")
 
