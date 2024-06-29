@@ -2,7 +2,7 @@ from typing import Optional, Any, Callable
 import phonenumbers
 from phonenumbers import NumberParseException, geocoder, carrier, timezone
 from ..field import Field
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class PhoneField(Field):

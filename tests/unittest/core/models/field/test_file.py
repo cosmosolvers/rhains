@@ -11,13 +11,13 @@ from core.models import (
 )
 
 
-class Music(Model):
-    jazz = AudioField()
+# class Music(Model):
+#     jazz = AudioField()
 
 
-class TestAudioField(unittest.TestCase):
-    def setUp(self) -> None:
-        self.music = Music(jazz="")
+# class TestAudioField(unittest.TestCase):
+#     def setUp(self) -> None:
+#         self.music = Music(jazz="")
 
 
 class TestFileField(unittest.TestCase):

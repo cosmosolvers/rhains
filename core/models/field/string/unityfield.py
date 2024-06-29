@@ -2,7 +2,7 @@ from typing import Any, Callable, Optional, List, Dict
 
 from ..field import Field
 
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class ExchangeField(Field):

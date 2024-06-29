@@ -80,7 +80,7 @@ list syntax
         'field': {'$gt': 'value'}
         '$': [
             {'$-': {'field': 'value'}},
-            {'$.': '!'}
+            {'$.': '!'},
         ]
     }
 }
@@ -205,12 +205,13 @@ the keys
 
 2. atomic
     {'$atomic': True} default False
+
 the meta
 --------
 1. aggregation
     {'$agg': {'field': 'value'}}
 """
-from exception.core.rh.database import collection as db
+from exceptions.core.rh.database import collection as db
 
 from .database import (
     SqliteCRUD,

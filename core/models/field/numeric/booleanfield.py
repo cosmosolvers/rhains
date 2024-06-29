@@ -2,7 +2,7 @@ from typing import Any
 
 from ..field import Field
 # exception class
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class BooleanField(Field):

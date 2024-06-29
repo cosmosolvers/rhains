@@ -2,7 +2,7 @@ from typing import Any, Optional, Callable
 
 from ..field import Field
 
-from exception.core.models import field
+from exceptions.core.models import field
 
 from utils.bin import (
     base32_to_decimal,

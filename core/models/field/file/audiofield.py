@@ -7,8 +7,8 @@ import os
 
 from .filefield import FileField
 
-from security.conf import rhconf
-from exception.core.models import field
+from core.config.conf import rhconf
+from exceptions.core.models import field
 
 
 class AudioField(FileField):

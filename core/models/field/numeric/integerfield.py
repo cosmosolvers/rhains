@@ -2,7 +2,7 @@ from typing import Any, List, Tuple, Optional
 
 from ..field import Field
 
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class IntegerField(Field):

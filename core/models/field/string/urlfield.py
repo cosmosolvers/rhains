@@ -1,7 +1,7 @@
 from typing import Optional
 import re
 from ..field import Field
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class URLField(Field):

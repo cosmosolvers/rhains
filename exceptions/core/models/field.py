@@ -1,4 +1,4 @@
-from exception.rhains import RhainsBaseException
+from exceptions.rhains import RhainsBaseException
 
 
 class FieldCheckError(RhainsBaseException):
@@ -86,4 +86,24 @@ class FieldMediaPathError(RhainsBaseException):
 
 
 class FieldFileNotFoundError(RhainsBaseException):
+    ...
+
+
+class DateFieldValidationError(RhainsBaseException):
+    ...
+
+
+class DateTimeFieldValidationError(RhainsBaseException):
+    ...
+
+
+class TimeFieldFormatError(RhainsBaseException):
+    ...
+
+
+class TimeFieldValidationError(RhainsBaseException):
+    ...
+
+
+class TimeFieldParseError(RhainsBaseException):
     ...

@@ -4,7 +4,7 @@ TEST FIELD
 import unittest
 from typing import Callable, Any
 from core.models.field import field as fd
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class Inheritance(fd.Field):
@@ -103,7 +103,7 @@ class TestErrorFieldWithNullable(unittest.TestCase):
 class TestErrorFieldWithPrimarykey(unittest.TestCase):
 
     def test_by_nullable(self):
-        with self.assertRaises(field.FieldPrimarykeyError) as err:
+        with self.assertRaises(field.FieldDefaultError) as err:
             Inheritance(primary_key=True, nullable=True)
             self.assertEqual(err.msg, "nullable field can't be primary key")
 

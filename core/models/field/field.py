@@ -3,7 +3,7 @@
 from typing import Any, Optional, Callable
 
 # exception class
-from exception.core.models import field
+from exceptions.core.models import field
 from utils.validefunc import validate_function_ckeck, validate_function_default
 
 
@@ -52,7 +52,9 @@ class Field:
         self.__validated_unique()
 
         self._primarykey = primary_key
-        self.__validated_primarykey()
+        if self._primarykey:
+            self._unique = True
+            self._nullable = False
 
         if default:
             if not callable(default):
@@ -77,12 +79,6 @@ class Field:
         if self._nullable and self._unique:
             raise field.FieldUniqueError("nullable field can't be unique")
 
-    def __validated_primarykey(self):
-        if self._primarykey:
-            if self._nullable:
-                raise field.FieldPrimarykeyError("nullable field can't be primary key")
-            self._unique = True
-
     def __validated_default(self, default):
         if default:
             if self._check and not self._check(default):
@@ -99,7 +95,7 @@ class Field:
 
     # convertir une valeur de la base de donnée en donnée python
     # apres la lecture dans la base de donnée
-    def load(value: Any) -> Any:
+    def load(self, value: Any) -> Any:
         raise NotImplementedError
 
     # convertir une donnée python en valeur de la base de donnée
