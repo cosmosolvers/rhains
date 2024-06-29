@@ -94,7 +94,6 @@ rhains/
 |   ├── auth/
 |   |   ├── authentication.py
 |   |   ├── authorization.py
-|   ├── conf.py
 ├── services/
 |   ├── logger.py
 ├── public/

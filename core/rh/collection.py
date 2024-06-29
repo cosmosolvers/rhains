@@ -80,7 +80,7 @@ list syntax
         'field': {'$gt': 'value'}
         '$': [
             {'$-': {'field': 'value'}},
-            {'$.': '!'}
+            {'$.': '!'},
         ]
     }
 }
@@ -205,6 +205,7 @@ the keys
 
 2. atomic
     {'$atomic': True} default False
+
 the meta
 --------
 1. aggregation
