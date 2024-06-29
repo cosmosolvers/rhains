@@ -1,7 +1,7 @@
 from typing import Any, Optional
 import uuid
 from ..field import Field
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class UUIDField(Field):

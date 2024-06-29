@@ -11,7 +11,7 @@ from utils.bin import (
     binary_to_baseN
 )
 # exception class
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class BinaryField(Field):

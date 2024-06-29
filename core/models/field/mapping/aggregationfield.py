@@ -3,7 +3,7 @@ import json
 
 from ..field import Field
 
-from exception.core.models import field
+from exceptions.core.models import field
 from utils.validefunc import validate_function
 
 

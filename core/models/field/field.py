@@ -3,7 +3,7 @@
 from typing import Any, Optional, Callable
 
 # exception class
-from exception.core.models import field
+from exceptions.core.models import field
 from utils.validefunc import validate_function_ckeck, validate_function_default
 
 

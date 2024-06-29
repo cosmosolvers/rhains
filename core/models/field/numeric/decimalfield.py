@@ -3,7 +3,7 @@ from decimal import Decimal, getcontext
 
 from ..field import Field
 
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class DecimalField(Field):

@@ -3,7 +3,7 @@ from typing import Any, Callable, Optional, List
 
 from ..field import Field
 
-from exception.core.models import field
+from exceptions.core.models import field
 
 from utils.bin import (
     str_to_base32,

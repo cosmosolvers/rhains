@@ -4,7 +4,7 @@ from ...model import Model
 from typing import Any, List
 import json
 
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class ManyToManyShip(RelationShip):

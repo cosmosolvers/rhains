@@ -2,7 +2,7 @@
 TEST CONF
 """
 import unittest
-from security.conf import rhconf, Attrs
+from core.config.conf import rhconf, Attrs
 
 
 class TestConf(unittest.TestCase):

@@ -9,7 +9,7 @@ from core.models import (
     DateTimeField,
     TimeField
 )
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class Meet(Model):

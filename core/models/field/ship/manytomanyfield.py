@@ -3,7 +3,7 @@ from .reference import Reference
 from typing import Any
 import json
 
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class ManyToManyField(Reference):

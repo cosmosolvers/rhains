@@ -4,7 +4,7 @@ TEST FIELD
 import unittest
 from typing import Callable, Any
 from core.models.field import field as fd
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class Inheritance(fd.Field):

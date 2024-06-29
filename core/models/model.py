@@ -9,7 +9,7 @@ from typing import Any
 
 from .field.field import Field
 
-from exception.core.models import model as md
+from exceptions.core.models import model as md
 
 
 class ModelMeta(type):

@@ -1,4 +1,4 @@
-from exception.rhains import RhainsBaseException
+from exceptions.rhains import RhainsBaseException
 
 
 class FieldCheckError(RhainsBaseException):

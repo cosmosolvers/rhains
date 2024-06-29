@@ -210,7 +210,7 @@ the meta
 1. aggregation
     {'$agg': {'field': 'value'}}
 """
-from exception.core.rh.database import collection as db
+from exceptions.core.rh.database import collection as db
 
 from .database import (
     SqliteCRUD,

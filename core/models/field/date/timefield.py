@@ -3,7 +3,7 @@ from datetime import datetime, time
 
 from ..field import Field
 
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class TimeField(Field):

@@ -13,7 +13,7 @@ import sqlite3
 import re
 
 from utils.condition import CONDITION
-from exception.core.rh import database as db
+from exceptions.core.rh import database as db
 
 
 def regexp(pattern, string):

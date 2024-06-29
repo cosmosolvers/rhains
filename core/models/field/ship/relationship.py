@@ -2,7 +2,7 @@ from typing import List, Any
 
 from ..field import Field
 
-from exception.core.models import field
+from exceptions.core.models import field
 from ...model import Model
 
 

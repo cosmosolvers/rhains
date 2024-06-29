@@ -40,7 +40,7 @@ __media = {
         'url': '',
         'prefered': {
             'size': -1,
-            'format': 'all'
+            'format': ''
         }
     }
 }
@@ -118,15 +118,6 @@ class __RHConfig:
         if instance is None:
             return self
         return self.__conf
-
-    def loading(self, **kwargs) -> None:
-        verify_dict(configure, kwargs)
-        self.__conf = Attrs(**kwargs)
-
-    def partial(self, name: str, **kwargs) -> None:
-        if hasattr(self.__conf, name):
-            verify_dict(configure.get(name), kwargs)
-            setattr(self.__conf, name, Attrs(**kwargs))
 
 
 rhconf = __RHConfig(**configure)

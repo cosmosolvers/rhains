@@ -4,7 +4,7 @@ import pytz
 
 from ..field import Field
 
-from exception.core.models import field
+from exceptions.core.models import field
 
 
 class DateField(Field):
