@@ -7,7 +7,6 @@ import os
 
 from .filefield import FileField
 
-from core.config.conf import rhconf
 from exceptions.core.models import field
 
 
@@ -34,11 +33,6 @@ class AudioField(FileField):
         default: Optional[str] = None
     ):
         super().__init__(upload_to=upload_to, nullable=nullable, default=default)
-        self._format = ''
-        if 'audio' in rhconf.get('media'):
-            self._format = rhconf.get('media').get('audio').get('prefered').get('format')
-        else:
-            raise field.FieldMediaFormatError("media audio format not found in configuration file")
 
     def __upload_file(self, file_content: bytes) -> str:
         audio = AudioSegment.from_file(io.BytesIO(file_content))
@@ -46,13 +40,13 @@ class AudioField(FileField):
         audio = audio.set_frame_rate(44100)
         # Régler le nombre de canaux si nécessaire
         audio = audio.set_channels(2)
-        fielname = secure_filename(shortuuid.uuid()) + '.' + self._format
+        fielname = secure_filename(shortuuid.uuid()) + '.' + self._ext
         url = os.path.join(self._upload, fielname)
 
         self._size = os.path.getsize(url)
-        SIZE = rhconf.get('media').get('prefered').get('size')
+        SIZE = self.__file.prefered.size
         if SIZE != -1 and self._size > SIZE:
             os.remove(url)
             raise field.FieldFileSizeError(f"file size {self._size} is too large")
         audio.export(url, format=self._format)
-        return url
+        self._value = url

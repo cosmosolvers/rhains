@@ -9,7 +9,7 @@ from core.config.conf import rhconf
 from exceptions.core.models import field
 
 
-__file = {
+filechoice = {
     'AudioField': 'audio',
     'ImageField': 'img',
     'MediaField': 'video',
@@ -18,14 +18,15 @@ __file = {
 
 
 class MediaView:
-    def __init__(self, url, size, type) -> None:
+    def __init__(self, url: str, size: float, ext: str) -> None:
         self.__url = url
         self.__size = size
-        self.__type = type
+        self.__ext = ext
 
     def __delete_file(self) -> None:
         if os.path.exists(self.__url):
             os.remove(self.__url)
+        self.__url = None
 
     def remove(self) -> None:
         self.__delete_file()
@@ -40,8 +41,12 @@ class MediaView:
         return self.__size
 
     @property
-    def type(self) -> str:
-        return self.__type
+    def format(self) -> str:
+        return self.__ext.upper()
+
+    @property
+    def ext(self) -> str:
+        return self.__ext
 
 
 class FileField(Field):
@@ -70,12 +75,23 @@ class FileField(Field):
         if not self.__media:
             raise field.FieldFileError('media file not found')
 
-        self.__file = getattr(self.__media, __file.get(self.__class__.__name__))
+        self.__file = getattr(self.__media, filechoice.get(self.__class__.__name__))
         if not self.__file:
             self.__file = self.__media.file
 
         if not self.__file:
             raise field.FileFieldError('media file not found')
+
+        # create folder if self.__file.local is true and file.path don't exists
+        folder = os.path.join(rhconf.project.path, self.__file.path)
+        if self.__file.local and not os.path.exists(folder):
+            os.makedirs(folder)
+            if self.__file.url:
+                os.chdir(folder)
+                pathlist = self.__file.url.split('/\\')
+                for path in pathlist:
+                    os.makedirs(path)
+                    os.chdir(path)
 
         path = self.__file.path
         if not path:
@@ -93,9 +109,10 @@ class FileField(Field):
             os.makedirs(self._upload)
         # taille du fichier
         self._size = 0
+        self._ext = ''
 
     def __upload_file(self, file_content: bytes) -> str:
-        filename = secure_filename(shortuuid.uuid())
+        filename = secure_filename(shortuuid.uuid()) + '.' + self._ext
         url = os.path.join(self._upload, filename)
         with open(url, 'wb') as f:
             f.write(file_content)
@@ -104,7 +121,7 @@ class FileField(Field):
         if SIZE != -1 and self._size > SIZE:
             os.remove(url)
             raise field.FieldFileSizeError(f"file size {self._size} is too large")
-        return url
+        self._value = url
 
     def __load_file(self, value: str) -> bytes:
         with open(value, 'rb') as f:
@@ -123,10 +140,16 @@ class FileField(Field):
     def _validated(self, value: Any) -> bool:
         return super()._validated(value) and isinstance(value, bytes)
 
-    def __set__(self, instance, value: bytes):
-        value = self.__upload_file(value)
-        return super().__set__(instance, value)
+    def __set__(self, instance, value: str):
+        self._ext = value.split('.')[-1]
+        format = self.__file.prefered.format
+        if len(format) != 0 and self._ext not in format:
+            raise field.FieldFieldFormatError(f'{self.__ext} not accepted')
+        value = self.__load_file(value)
+        self._validated(value)
+        self.__upload_file(value)
 
-    def __get__(self, instance, owner):
-        value = super().__get__(instance, owner)
-        return MediaView(value, self._size, self.__file.format)
+    def __get__(self, instance, owner) -> MediaView:
+        if not instance:
+            return self
+        return MediaView(self._value, self._size, self._ext)

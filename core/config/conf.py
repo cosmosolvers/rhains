@@ -40,7 +40,7 @@ __media = {
         'url': '',
         'prefered': {
             'size': -1,
-            'format': ''
+            'format': []
         }
     }
 }
