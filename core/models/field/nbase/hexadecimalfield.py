@@ -4,15 +4,6 @@ from ..field import Field
 
 from exceptions.core.models import field
 
-from utils.bin import (
-    hexadecimal_to_decimal,
-    hexadecimal_to_binary,
-    hexadecimal_to_base64,
-    hexadecimal_to_base64url,
-    hexadecimal_to_base32,
-    hexadecimal_to_baseN,
-)
-
 
 class HexadecimalField(Field):
     """
@@ -45,24 +36,6 @@ class HexadecimalField(Field):
             raise field.FieldDefaultError("default value must be hexadecimal")
 
         super().__init__(nullable, default, primary_key, unique, editable, check)
-
-    def to_decimal(self) -> int:
-        return hexadecimal_to_decimal(self._value)
-
-    def to_binary(self) -> str:
-        return hexadecimal_to_binary(self._value)
-
-    def to_base64(self) -> str:
-        return hexadecimal_to_base64(self._value)
-
-    def to_base64url(self) -> str:
-        return hexadecimal_to_base64url(self._value)
-
-    def to_base32(self) -> str:
-        return hexadecimal_to_base32(self._value)
-
-    def to_baseN(self, base: int) -> str:
-        return hexadecimal_to_baseN(self._value, base)
 
     def load(self, value: str) -> str:
         return value

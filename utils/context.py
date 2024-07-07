@@ -1,4 +1,16 @@
-""""""
+"""
+changement a faire
+
+regardez que dans models
+- si models est un package regardez uniquement dans son fichier __init__.py
+- sinon uniquement dans models.py
+
+conclusion
+==========
+
+les developpeur qui fond de models un package doivent
+importer tout les models dans __init__.py du package models
+"""
 import pkgutil
 
 
@@ -13,3 +25,19 @@ def get_models_from_package_or_module(path: str, model_class: type) -> list:
             if isinstance(obj, type) and issubclass(obj, model_class):
                 models.append(obj)
     return models
+
+
+def primarykeys(model) -> str:
+    for field, module in model.mapping:
+        if module._primarykey:
+            return field
+    return None
+
+
+def verifykeys(model):
+    count = 0
+    for k, v in model.mapping:
+        if v._primarykey:
+            count += 1
+    if count != 1:
+        raise AttributeError('too many field are primary key')

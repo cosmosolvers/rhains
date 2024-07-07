@@ -35,8 +35,8 @@ class ArrayField(Field):
     def load(self, value: Any) -> Any:
         return json.loads(value)
 
-    def dump(self) -> str:
-        return json.dumps(self._value)
+    def dump(self, value) -> str:
+        return json.dumps(value)
 
     def _validated(self, value: Any) -> bool:
-        return super()._validated(value) and isinstance(value, (List, Tuple))
+        return super()._validated(value) and isinstance(value, (list, tuple))

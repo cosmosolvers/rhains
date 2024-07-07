@@ -67,10 +67,62 @@ class TestArrayField(unittest.TestCase):
     def setUp(self) -> None:
         self.array = Fruits(names=["mangoes", "bananas", "apples"])
 
+    def test_value(self):
+        self.assertEqual(
+            self.array.names,
+            ["mangoes", "bananas", "apples"]
+        )
+        self.assertEqual(
+            Fruits.names.load(
+                Fruits.names.dump(
+                    self.array.names
+                )
+            ),
+            self.array.names
+        )
+
+
+class Coordinates(Model):
+    coordinates = GeographicalField()
+
 
 class TestGeographicalField(unittest.TestCase):
-    pass
+    def setUp(self) -> None:
+        self.geo = Coordinates(coordinates=(0.0, 0.0))
+
+    def test_value(self):
+        self.assertEqual(
+            (self.geo.coordinates.lat, self.geo.coordinates.lng),
+            (0.0, 0.0)
+        )
+        self.assertEqual(
+            Coordinates.coordinates.load(
+                Coordinates.coordinates.dump(
+                    (self.geo.coordinates.lat, self.geo.coordinates.lng)
+                )
+            ),
+            self.geo.coordinates
+        )
+
+
+class classRoom(Model):
+    matrix = MatrixField()
 
 
 class TestMatrixField(unittest.TestCase):
-    pass
+    def setUp(self) -> None:
+        self.mat = classRoom(matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+    def test_value(self):
+        self.assertEqual(
+            self.mat.matrix,
+            [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        )
+        self.assertEqual(
+            classRoom.matrix.load(
+                classRoom.matrix.dump(
+                    self.mat.matrix
+                )
+            ),
+            self.mat.matrix
+        )

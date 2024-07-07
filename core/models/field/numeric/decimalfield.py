@@ -113,11 +113,11 @@ class DecimalField(Field):
         except ValueError:
             raise field.DecimalFieldLoadError(f"{value} can't be loaded")
 
-    def dump(self) -> Any:
+    def dump(self, value) -> Any:
         try:
-            return Decimal(self._value).quantize(Decimal(self.scale))
+            return Decimal(value).quantize(Decimal(self.scale))
         except ValueError:
-            raise field.DecimalFieldDumpError(f"{self._value} can't be encapsuled")
+            raise field.DecimalFieldDumpError(f"{value} can't be encapsuled")
 
     def validate(self, value: Union[float, int, str]) -> bool:
         if self._min and value < self._min:

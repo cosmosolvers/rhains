@@ -30,6 +30,8 @@ class Model(metaclass=ModelMeta):
                 setattr(self, field_name, kwargs[field_name])
             else:
                 setattr(self, field_name, field_instance._value)
+            if field_instance._primarykey:
+                self.Meta.pk = field_name
 
     def __setattr__(self, key: str, value: Any) -> None:
         if key in self._fields:
@@ -63,3 +65,11 @@ class Model(metaclass=ModelMeta):
         database = 'default'
         abstract = False
         sort = ''
+        pk = ''
+
+        def __setattr__(self, name: str, value: Any) -> None:
+            if name == 'pk':
+                raise ValueError('you are not permission for this action')
+            if name not in self.__dict__:
+                raise AttributeError(f'attribut {name} not exists')
+            setattr(self, name, value)

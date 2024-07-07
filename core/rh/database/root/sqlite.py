@@ -13,6 +13,8 @@ import sqlite3
 import re
 
 from utils.condition import CONDITION
+from utils.data import pk
+
 from exceptions.core.rh import database as db
 
 
@@ -33,21 +35,26 @@ class SqliteAdapter(Adapter):
             self._client.execute('PRAGMA foreign_keys = ON')
             self._client.create_function('REGEXP', 2, regexp)
         except sqlite3.Error as e:
-            raise db.DatabaseError(str(e))
+            raise db.DatabaseError(e)
 
 
 class SqliteCRUD(Rowscrud):
     def __init__(self, connexion: sqlite3.Connection) -> None:
         self.connexion = connexion
-        # creer une memoire cache temporaire pour les conditions having
-        # a executer apres le rendu de la base de donnée
-        # elle doit etre vider avant chaque requete
-        self.__ATOMIC = False
+
+    def atomic(self, **kwrags):
+        with session(self.connexion) as conn:
+            try:
+                pass
+            except sqlite3.Error as e:
+                conn.rollback()
+                raise db.DatabaseError(str(e))
 
     def create(self, tablename: str, **kwargs):
-        self.__ATOMIC = kwargs.pop('$atomic', False)
         columns = ', '.join(kwargs.keys())
         placeholders = ', '.join(['?' for _ in kwargs])
+        # retourner les valeur des pk pour les foreignkeys
+        pk(kwargs.values())
         values = tuple(kwargs.values())
         query = f"INSERT INTO {tablename} ({columns}) VALUES ({placeholders})"
 
@@ -58,65 +65,17 @@ class SqliteCRUD(Rowscrud):
                 connexion.commit()
                 return cursor.lastrowid
             except sqlite3.Error as e:
-                if self.__ATOMIC:
-                    connexion.rollback()
                 raise db.DatabaseError(str(e))
 
     def get(self, tablename: str, **kwargs):
-        self.memory.clear()
-        join, where, having, values = self._query(tablename, '$get', **kwargs)
-        query = f"""
-        SELECT * FROM {tablename}
-        """ + join + where + having
+        values = kwargs.popitem()
+        query = f"SELECT * FROM {tablename} WHERE ? = ?"
 
         with session(self.connexion) as connexion:
             cursor: sqlite3.Cursor = connexion.cursor()
             cursor.execute(query, values)
             result = cursor.fetchone()
             return result
-
-    def _query(self, tab, func: str, **kwargs):
-        join = ''
-        where = 'pk = ?' if func in ('$get', '$set', '$del') else ''
-        having = ''
-        values = (kwargs.get('$pk'),) if func in ('$get', '$set') else tuple()
-        for key, data in kwargs.items():
-            if '$fk' in data:
-                # recuperer la table de la clé etrangere
-                tab1 = data['$fk'].get('model')
-                # faire un join
-                join += f' JOIN {tab1} ON {tab}.{key} = {tab1}.pk'
-                # recommencer le processus avec le reste des elements de la table etrangere
-                j, w, h, v = self._query(tab1, func, data['$fk'])
-                # collecter les resultats
-                join += f' {j}'
-                where += f"{' AND ' if where else ''}{w}"
-                having += f"{' AND ' if where else ''}{h}"
-                values += v
-            if not isinstance(data, dict):
-                where += f'{' AND' if where else ''}{tab}.{key} = {data}'
-            if isinstance(data, dict):
-                k, s = data.popitem()
-                if k in CONDITION:
-                    w, v = CONDITION.get(k)(tab, k, s)
-                    where += w
-                    values += v
-                else:
-                    self.memory[key] = k
-
-    def _join_query(self, tab, key, data):
-        new_tab = data.get('model')
-        join = f' JOIN {new_tab} ON {tab}.{key} = {new_tab}.pk'
-        return join
-
-    def _agent_query(self, tab, key, data):
-        pass
-
-    def _where_query(self, tab, key, data):
-        pass
-
-    def _memory_query(self, tab, key, data):
-        pass
 
     def all(self, tablename: str):
         with session(self.connexion) as connexion:
@@ -126,9 +85,15 @@ class SqliteCRUD(Rowscrud):
             return result
 
     def filter(self, tablename: str, *args, **kwargs):
-        query = f"""
-        SELECT * FROM {tablename}
-        """
+        placeholders = ', '.join(['? = ?' for _ in kwargs])
+        values = tuple(kwargs.values())
+        query = f"SELECT * FROM {tablename} WHERE {placeholders}"
+
+        with session(self.connexion) as conn:
+            cursor: sqlite3.Cursor = conn.cursor()
+            cursor.execute(query, values)
+            result = cursor.fetchall()
+            return result
 
     # faire un get avant l'operation dans les update
     # pour la possibilité de manipuler les list, dict et tuple enregistrer en json

@@ -4,15 +4,6 @@ from ..field import Field
 
 from exceptions.core.models import field
 
-from utils.bin import (
-    baseN_to_decimal,
-    baseN_to_binary,
-    baseN_to_hexadecimal,
-    baseN_to_base64,
-    baseN_to_base64url,
-    baseN_to_base32,
-)
-
 
 baseno = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
@@ -55,29 +46,11 @@ class BaseNField(Field):
 
         super().__init__(nullable, default, primary_key, unique, editable, check)
 
-    def to_decimal(self) -> int:
-        return baseN_to_decimal(self._value, self._base)
-
-    def to_hexadecimal(self) -> str:
-        return baseN_to_hexadecimal(self._value, self._base)
-
-    def to_binary(self) -> str:
-        return baseN_to_binary(self._value, self._base)
-
-    def to_base64(self) -> str:
-        return baseN_to_base64(self._value, self._base)
-
-    def to_base64url(self) -> str:
-        return baseN_to_base64url(self._value, self._base)
-
-    def to_base32(self) -> str:
-        return baseN_to_base32(self._value, self._base)
-
     def load(self, value: str) -> str:
         return value
 
-    def dump(self) -> str:
-        return self._value
+    def dump(self, value) -> str:
+        return value
 
     def _validated(self, value: Any) -> bool:
         return super()._validated(value) and all(char in baseno[:self._base] for char in value)

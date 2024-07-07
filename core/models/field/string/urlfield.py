@@ -46,8 +46,8 @@ class URLField(Field):
     def load(self, value: str) -> str:
         return value
 
-    def dump(self) -> str:
-        return self._value
+    def dump(self, value) -> str:
+        return value
 
     def _validated_url(self, value: str) -> bool:
         regex = re.compile(

@@ -42,11 +42,11 @@ class PercentField(Field):
     def dump(self) -> float:
         return self._value
 
-    def to_decimal(self) -> float:
-        return self._value / 100
+    # def to_decimal(self) -> float:
+    #     return self._value / 100
 
-    def from_decimal(self, value: float) -> float:
-        return value * 100
+    # def from_decimal(self, value: float) -> float:
+    #     return value * 100
 
     def _validated(self, value: Any) -> bool:
         return super()._validated(value) and 0 <= value <= 100

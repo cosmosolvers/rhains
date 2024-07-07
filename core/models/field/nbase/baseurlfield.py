@@ -4,15 +4,6 @@ from ..field import Field
 
 from exceptions.core.models import field
 
-from utils.bin import (
-    base64url_to_decimal,
-    base64url_to_binary,
-    base64url_to_hexadecimal,
-    base64url_to_base64,
-    base64url_to_base32,
-    base64url_to_baseN,
-)
-
 
 baseurl = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
 
@@ -49,29 +40,11 @@ class Base64UrlField(Field):
 
         super().__init__(nullable, default, primary_key, unique, editable, check)
 
-    def to_decimal(self) -> int:
-        return base64url_to_decimal(self._value)
-
-    def to_hexadecimal(self) -> str:
-        return base64url_to_hexadecimal(self._value)
-
-    def to_binary(self) -> str:
-        return base64url_to_binary(self._value)
-
-    def to_base64(self) -> str:
-        return base64url_to_base64(self._value)
-
-    def to_base32(self) -> str:
-        return base64url_to_base32(self._value)
-
-    def to_baseN(self, base: int) -> str:
-        return base64url_to_baseN(self._value, base)
-
     def load(self, value: str) -> str:
         return value
 
-    def dump(self) -> str:
-        return self._value
+    def dump(self, value) -> str:
+        return value
 
     def _validated(self, value: Any) -> bool:
         return super()._validated(value) and all(char in baseurl for char in value)

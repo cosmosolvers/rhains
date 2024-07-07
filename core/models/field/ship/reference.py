@@ -58,8 +58,8 @@ class Reference(Field):
     def load(self, value: Dict) -> Any:
         return self._to(value)
 
-    def dump(self) -> Any:
-        return str(self._value)
+    def dump(self, value) -> Any:
+        return str(value)
 
     def _validated(self, value: Any) -> bool:
         if not isinstance(value, self._to):

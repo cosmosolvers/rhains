@@ -1,7 +1,7 @@
 from ..field import Field
 
 from exceptions.core.models import field
-from typing import Any, Optional, Callable
+from typing import Any, Optional, Callable, List
 import json
 
 
@@ -27,7 +27,7 @@ class MatrixField(Field):
     def __init__(
         self,
         nullable: bool = True,
-        default: Optional[list[list[Any]]] = None,
+        default: Optional[List[List[Any]]] = None,
         primary_key: bool = False,
         unique: bool = False,
         editable: bool = True,
@@ -51,11 +51,11 @@ class MatrixField(Field):
                 return True
         return False
 
-    def load(self, value: str) -> list[list[Any]]:
+    def load(self, value: str) -> List[List[Any]]:
         return json.loads(value)
 
-    def dump(self) -> str:
-        return json.dumps(self._value)
+    def dump(self, value) -> str:
+        return json.dumps(value)
 
     def _validated(self, value: Any) -> bool:
         return self._validated_matrix(value) and super()._validated(value)

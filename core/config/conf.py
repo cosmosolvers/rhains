@@ -22,7 +22,7 @@ __server = {
 }
 
 __databases = {
-    # sqlite, mysql, postgres, mongo, arango
+    # sqlite, mysql, postgres, mongodb, arangodb
     'root': {
         'engine': 'sqlite',
         'user': '',
@@ -69,6 +69,7 @@ class Attrs:
         if not kwargs:
             raise ValueError(f'{kwargs} cannot be null')
         self.__attrs(kwargs)
+        self.__at = kwargs
         self.__name = None
 
     def __set_name__(self, owner, name):
@@ -81,6 +82,7 @@ class Attrs:
         if self.__name in configure:
             verify_dict(configure.get(self.__name), value)
         self.__attrs(value)
+        self.__at = value
 
     def __attrs(self, value: Dict):
         for k, v in value.items():
@@ -92,6 +94,11 @@ class Attrs:
 
     def __getattr__(self, name: str) -> Any:
         return self.__dict__.get(name)
+
+    def __getitem__(self, name: str) -> Dict:
+        return self.__at.get(name)
+
+    # in
 
 
 class __RHConfig:
@@ -119,6 +126,11 @@ class __RHConfig:
         if instance is None:
             return self
         return self.__conf
+
+    def __getitem__(self, name) -> Dict:
+        return self.__conf.get(name)
+
+    # in
 
 
 rhconf = __RHConfig(**configure)

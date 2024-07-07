@@ -112,8 +112,7 @@ import json
 
 class Adapter:
 
-    def __init__(self, conf: Dict) -> None:
-        self._conf = conf
+    def __init__(self) -> None:
         self._client = None
 
     def connect(self):
@@ -152,23 +151,23 @@ class Rowscrud:
     def delete(self, pk, *args, **kwargs):
         pass
 
-    def aggregations(self, *args, **kwargs):
-        pass
+    # def aggregations(self, *args, **kwargs):
+    #     pass
 
-    def exists(self, *args, **kwargs):
-        pass
+    # def exists(self, *args, **kwargs):
+    #     pass
 
-    def count(self, *args, **kwargs):
-        pass
+    # def count(self, *args, **kwargs):
+    #     pass
 
-    def sort(self, *args, **kwargs):
-        pass
+    # def sort(self, *args, **kwargs):
+    #     pass
 
-    def limit(self, *args, **kwargs):
-        pass
+    # def limit(self, *args, **kwargs):
+    #     pass
 
-    def offset(self, *args, **kwargs):
-        pass
+    # def offset(self, *args, **kwargs):
+    #     pass
 
 
 class Tablecrud:

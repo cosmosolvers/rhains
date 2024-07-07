@@ -56,7 +56,7 @@ class Matrix:
             self.__validate(model)
             self.__models.append(model)
 
-    def __len__(self):
+    def count(self):
         return len(self.__models)
 
     def exists(self):

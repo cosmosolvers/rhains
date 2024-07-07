@@ -1,4 +1,31 @@
-""""""
+"""
+1. less than
+    {'$lt: value}
+2. less than or equal
+    {'$le': value}
+3. greater than
+    {'$gt': value}
+4. greater than or equal
+    {'$ge': value}
+5. in
+    {'$in': value}
+6. not in
+    {'$nin': value}
+7. not equal
+    {'$ne': value}
+8. like
+    {'$like': value}
+9. between
+    {'$$': (n, m)}
+10. min
+    {'$min': value}
+11. max
+    {'$max': value}
+12. avg
+    {'$avg': value}
+13. partial
+    {'$rm': value} / {'$add': value}
+"""
 
 
 def less_than_instrcut(tab: str, key: str, value):
@@ -31,6 +58,24 @@ def nin_instruct(tab: str, key: str, value):
 
 def between_instruct(tab: str, key: str, value):
     return f"{tab}.{key} BETWEEN ? AND ?", (value,)
+
+
+agents = {
+    '$lt': '',
+    '$le': '',
+    '$gt': '',
+    '$ge': '',
+    '$in': '',
+    '$nin': '',
+    '$ne': '',
+    '$like': '',
+    '$$': '',
+    '$min': '',
+    '$max': '',
+    '$avg': '',
+    '$rm': '',
+    '$add': ''
+}
 
 
 CONDITION = {

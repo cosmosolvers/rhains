@@ -128,8 +128,8 @@ class IntegerField(Field):
         except ValueError:
             raise field.IntegerFieldLoadError(f"{value} can't be loaded")
 
-    def dump(self) -> int:
-        return int(self._value)
+    def dump(self, value) -> int:
+        return int(value)
 
     def validate(self, value: Any) -> bool:
         if self._min and value < self._min:

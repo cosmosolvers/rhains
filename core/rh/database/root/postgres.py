@@ -2,6 +2,8 @@
 from ..adapter import Adapter, Rowscrud, Tablecrud, Datacrud
 import psycopg2
 
+from exceptions.core.rh import database as db
+
 
 class PostgresAdapter(Adapter):
     def connect(self):
@@ -13,12 +15,14 @@ class PostgresAdapter(Adapter):
                 host=self.conf.get('host'),
                 port=self.conf.get('port')
             )
-        except:
-            pass
+        except psycopg2.DatabaseError as e:
+            raise db.DatabaseError(e)
 
 
 class PostgresCRUD(Rowscrud):
-    pass
+    def __init__(self, connexion: psycopg2.extensions.connection) -> None:
+        self.connexion = connexion
+        self.__ATOMIC = False
 
 
 class PostgresTablecrud(Tablecrud):
@@ -27,8 +31,6 @@ class PostgresTablecrud(Tablecrud):
 
 class PostgresDatacrud(Datacrud):
     pass
-
-
 
 
 # -- Correspondance partielle

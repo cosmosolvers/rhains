@@ -56,8 +56,8 @@ class CounterField(Field):
     def load(self, value: Any) -> Any:
         return value
 
-    def dump(self) -> Any:
-        return self._value
+    def dump(self, value) -> Any:
+        return value
 
     def _validated(self, value: Any) -> bool:
         if not isinstance(value, int):
