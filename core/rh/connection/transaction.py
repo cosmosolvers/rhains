@@ -1,6 +1,9 @@
 """
 """
 from ..session import session
+from ..result.scalar import Scalar, Matrix
+
+from exceptions.core.rh import database as db
 
 
 class Transaction:
@@ -14,51 +17,69 @@ class Transaction:
         managing database transactions atomically.
         """
         with session(self.__connexion) as conn:
-            self.create = self.__create
-            self.get = self.__get
-            self.filter = self.__filter
-            self.all = self.__all
-            self.update = self.__update
-            self.delete = self.__delete
+            self.create = lambda **kwargs: self.__create(conn, **kwargs)
+            self.get = lambda **kwargs: self.__get(conn, **kwargs)
+            self.filter = lambda **kwargs: self.__filter(conn, **kwargs)
+            self.all = lambda: self.__all(conn)
+            self.update = lambda **kwargs: self.__update(conn, **kwargs)
+            self.delete = lambda **kwargs: self.__delete(conn, **kwargs)
 
-    def __create(self, conn, **kwargs):
+    def __create(self, conn, **kwargs) -> Scalar:
         """
         Create a new record in the database.
         """
-        # Implement the creation logic here
-        pass
+        try:
+            pass
+        except Exception as e:
+            conn.rollback()
+            raise db.DatabaseError(e)
 
-    def __get(self, conn, **kwargs):
+    def __get(self, conn, **kwargs) -> Scalar | None:
         """
         Retrieve a single record from the database based on given criteria.
         """
-        # Implement the get logic here
-        pass
+        try:
+            pass
+        except Exception as e:
+            conn.rollback()
+            raise db.DatabaseError(e)
 
-    def __filter(self, conn, **kwargs):
+    def __filter(self, conn, **kwargs) -> Matrix | list:
         """
         Retrieve multiple records from the database based on given criteria.
         """
-        # Implement the filter logic here
-        pass
+        try:
+            pass
+        except Exception as e:
+            conn.rollback()
+            raise db.DatabaseError(e)
 
-    def __all(self, conn):
+    def __all(self, conn) -> Matrix | None:
         """
         Retrieve all records from the database.
         """
-        # Implement the all logic here
-        pass
+        try:
+            pass
+        except Exception as e:
+            conn.rollback()
+            raise db.DatabaseError(e)
 
-    def __update(self, conn, **kwargs):
+    def __update(self, conn, **kwargs) -> Scalar | None:
         """
         Update existing records in the database based on given criteria.
         """
-        # Implement the update logic here
-        pass
+        try:
+            pass
+        except Exception as e:
+            conn.rollback()
+            raise db.DatabaseError(e)
 
-    def __delete(self, conn, **kwargs):
+    def __delete(self, conn, **kwargs) -> bool:
         """
         Delete records from the database based on given criteria.
         """
-        # Implement the delete logic here
-        pass
+        try:
+            pass
+        except Exception as e:
+            conn.rollback()
+            raise db.DatabaseError(e)

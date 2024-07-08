@@ -42,31 +42,7 @@ class SqliteCRUD(Rowscrud):
     def __init__(self, connexion: sqlite3.Connection) -> None:
         self.connexion = connexion
 
-    def atomic(self, func):
-        def wrapper(*args):
-            with session(self.connexion) as conn:
-                try:
-                    return func(conn, *args)
-                except sqlite3.Error as e:
-                    conn.rollback()
-                    raise db.DatabaseError(e)
-        return wrapper
-
-    @atomic
-    def collect(self, conn, *args):
-        for arg in args:
-            if not isinstance(arg, dict):
-                raise db.DatabaseError(f'{arg} must be dictionary')
-            if len(arg) != 1:
-                raise db.DatabaseError(f'{arg} too many arguments')
-            k, v = arg.popitem()
-
-            match k:
-                case '$push':
-                    _(self, v.values())
-                    instance = ''
-
-    def __create(self, conn, tablename: str, **kwargs):
+    def bulk_create(self, conn, tablename: str, **kwargs):
         columns = ', '.join(kwargs.keys())
         placeholders = ', '.join(['?' for _ in kwargs])
         # retourner les valeur des pk pour les foreignkeys
@@ -77,7 +53,7 @@ class SqliteCRUD(Rowscrud):
         cursor.execute(query, values)
         conn.commit()
 
-    def __update(self, conn, tablename: str, **kwargs):
+    def bulk__update(self, conn, tablename: str, **kwargs):
         primarykey = kwargs.get('$pk')
         commit = kwargs.get('$commit')
 

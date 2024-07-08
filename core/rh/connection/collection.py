@@ -18,30 +18,6 @@ class Collection:
         if len(kwargs) == 0:
             raise db.DatabaseParamsError("data can't be empty")
 
-    def atomic(self, *args) -> bool:
-        """
-        COLLECT
-        =======
-
-        many syntax
-        -----------
-        [
-            {
-                '$set': {
-                }
-            },
-            {
-                '$push': {
-                }
-            },
-            ...
-        ]
-        """
-        if len(args) <= 0:
-            raise db.DatabaseParamsError("params can't empty")
-        result = self.__connexion.collect(self, *args)
-        return result
-
     # $push
     def create(self, **kwargs) -> Scalar:
         """
