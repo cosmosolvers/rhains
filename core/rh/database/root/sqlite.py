@@ -10,18 +10,18 @@ from ..adapter import (
 from ...session import session
 
 import sqlite3
-import re
+# import re
 
-from utils.condition import CONDITION
 from utils.data import pk
+from utils.data import instance as _
 
 from exceptions.core.rh import database as db
 
 
-def regexp(pattern, string):
-    if string is None:
-        return None
-    return re.search(pattern, string) is not None
+# def regexp(pattern, string):
+#     if string is None:
+#         return None
+#     return re.search(pattern, string) is not None
 
 
 class SqliteAdapter(Adapter):
@@ -33,7 +33,7 @@ class SqliteAdapter(Adapter):
             )
             self._client.row_factory = sqlite3.Row
             self._client.execute('PRAGMA foreign_keys = ON')
-            self._client.create_function('REGEXP', 2, regexp)
+            # self._client.create_function('REGEXP', 2, regexp)
         except sqlite3.Error as e:
             raise db.DatabaseError(e)
 
@@ -42,13 +42,53 @@ class SqliteCRUD(Rowscrud):
     def __init__(self, connexion: sqlite3.Connection) -> None:
         self.connexion = connexion
 
-    def atomic(self, **kwrags):
-        with session(self.connexion) as conn:
-            try:
-                pass
-            except sqlite3.Error as e:
-                conn.rollback()
-                raise db.DatabaseError(str(e))
+    def atomic(self, func):
+        def wrapper(*args):
+            with session(self.connexion) as conn:
+                try:
+                    return func(conn, *args)
+                except sqlite3.Error as e:
+                    conn.rollback()
+                    raise db.DatabaseError(e)
+        return wrapper
+
+    @atomic
+    def collect(self, conn, *args):
+        for arg in args:
+            if not isinstance(arg, dict):
+                raise db.DatabaseError(f'{arg} must be dictionary')
+            if len(arg) != 1:
+                raise db.DatabaseError(f'{arg} too many arguments')
+            k, v = arg.popitem()
+
+            match k:
+                case '$push':
+                    _(self, v.values())
+                    instance = ''
+
+    def __create(self, conn, tablename: str, **kwargs):
+        columns = ', '.join(kwargs.keys())
+        placeholders = ', '.join(['?' for _ in kwargs])
+        # retourner les valeur des pk pour les foreignkeys
+        pk(kwargs.values())
+        values = tuple(kwargs.values())
+        query = f"INSERT INTO {tablename} ({columns}) VALUES ({placeholders})"
+        cursor: sqlite3.Cursor = conn.cursor()
+        cursor.execute(query, values)
+        conn.commit()
+
+    def __update(self, conn, tablename: str, **kwargs):
+        primarykey = kwargs.get('$pk')
+        commit = kwargs.get('$commit')
+
+        placeholders = ' AND '.join([f'{key} = ?' for key in primarykey])
+        updating = ' ,'.join(f"{key} = ?" for key in commit)
+        values = tuple(commit.values()) + tuple(primarykey.values())
+
+        query = f"UPDATE {tablename} SET {updating} WHERE {placeholders}"
+        cursor: sqlite3.Cursor = conn.cursor()
+        cursor.execute(query, values)
+        conn.commit()
 
     def create(self, tablename: str, **kwargs):
         columns = ', '.join(kwargs.keys())
@@ -58,34 +98,34 @@ class SqliteCRUD(Rowscrud):
         values = tuple(kwargs.values())
         query = f"INSERT INTO {tablename} ({columns}) VALUES ({placeholders})"
 
-        with session(self.connexion) as connexion:
+        with session(self.connexion) as conn:
             try:
-                cursor: sqlite3.Cursor = connexion.cursor()
+                cursor: sqlite3.Cursor = conn.cursor()
                 cursor.execute(query, values)
-                connexion.commit()
+                conn.commit()
                 return cursor.lastrowid
             except sqlite3.Error as e:
                 raise db.DatabaseError(str(e))
 
     def get(self, tablename: str, **kwargs):
-        values = kwargs.popitem()
-        query = f"SELECT * FROM {tablename} WHERE ? = ?"
+        column, value = kwargs.popitem()
+        query = f"SELECT * FROM {tablename} WHERE {column} = ?"
 
-        with session(self.connexion) as connexion:
-            cursor: sqlite3.Cursor = connexion.cursor()
-            cursor.execute(query, values)
+        with session(self.connexion) as conn:
+            cursor: sqlite3.Cursor = conn.cursor()
+            cursor.execute(query, (value, ))
             result = cursor.fetchone()
             return result
 
     def all(self, tablename: str):
-        with session(self.connexion) as connexion:
-            cursor: sqlite3.Cursor = connexion.cursor()
+        with session(self.connexion) as conn:
+            cursor: sqlite3.Cursor = conn.cursor()
             cursor.execute(f'SELECT * FROM {tablename}')
             result = cursor.fetchall()
             return result
 
     def filter(self, tablename: str, *args, **kwargs):
-        placeholders = ', '.join(['? = ?' for _ in kwargs])
+        placeholders = ' AND '.join([f'{key} = ?' for key in kwargs])
         values = tuple(kwargs.values())
         query = f"SELECT * FROM {tablename} WHERE {placeholders}"
 
@@ -95,41 +135,31 @@ class SqliteCRUD(Rowscrud):
             result = cursor.fetchall()
             return result
 
-    # faire un get avant l'operation dans les update
-    # pour la possibilité de manipuler les list, dict et tuple enregistrer en json
     def update(self, tablename: str, **kwargs):
-        self.memory.clear()
-        join, where, having, values = self._query(tablename, '$set', **kwargs)
-        query = f"""
-        SELECT * FROM {tablename}
-        """
+        primarykey = kwargs.get('$pk')
+        commit = kwargs.get('$commit')
 
-    def delete(self, tablename: str, pk, *args, **kwargs):
-        where = ''
-        having = ''
-        join = ''
-        values = tuple()
-        query = f"""
-        SELECT * FROM {tablename}
-        """
+        placeholders = ' AND '.join([f'{key} = ?' for key in primarykey])
+        updating = ' ,'.join(f"{key} = ?" for key in commit)
+        values = tuple(commit.values()) + tuple(primarykey.values())
 
-    def aggregations(self, *args, **kwargs):
-        pass
+        query = f"UPDATE {tablename} SET {updating} WHERE {placeholders}"
 
-    def exists(self, *args, **kwargs):
-        pass
+        with session(self.connexion) as conn:
+            cursor: sqlite3.Cursor = conn.cursor()
+            cursor.execute(query, values)
+            conn.commit()
+            return cursor.lastrowid
 
-    def count(self, *args, **kwargs):
-        pass
+    def delete(self, tablename: str, **kwargs):
+        key, value = kwargs.get('$pk').popitem()
+        query = f"DELETE FROM {tablename} WHERE {key} = ?"
 
-    def sort(self, *args, **kwargs):
-        pass
-
-    def limit(self, *args, **kwargs):
-        pass
-
-    def offset(self, *args, **kwargs):
-        pass
+        with session(self.connexion) as conn:
+            cursor: sqlite3.Cursor = conn.cursor()
+            cursor.execute(query, (value, ))
+            conn.commit()
+            return cursor.rowcount > 0
 
 
 class SqliteTablecrud(Tablecrud):

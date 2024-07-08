@@ -1,10 +1,8 @@
 """
 
 """
-from typing import Tuple, Optional, Union
-
 from utils.data import instance as _
-from utils.data import foreignkeys
+from utils.data import treatment
 
 from ..result.scalar import Scalar, Matrix
 
@@ -20,52 +18,29 @@ class Collection:
         if len(kwargs) == 0:
             raise db.DatabaseParamsError("data can't be empty")
 
-    def collect(self, **kwargs) -> Optional[Tuple[Union[Scalar, Matrix]]]:
+    def atomic(self, *args) -> bool:
         """
         COLLECT
         =======
 
         many syntax
         -----------
-        {
-            '$': [
-                {
-                    '$get': {
-                    }
-                },
-                {
-                    '$get': {
-                    }
-                },
-                ...
-            ]
-        }
+        [
+            {
+                '$set': {
+                }
+            },
+            {
+                '$push': {
+                }
+            },
+            ...
+        ]
         """
-        self.__validated_data(**kwargs)
-        args = []
-        key, value = kwargs.popitem()
-        if key != '$':
-            raise db.DatabaseRequestError("`$` only")
-        if not isinstance(value, list):
-            raise db.DatabaseParamsError(f"{value} must be list")
-        if len(value) == 0:
-            raise db.DatabaseValueError(f"{value} can't be free")
-        if not all(type(item) is dict for item in value):
-            raise db.DatabaseValueItemError("data item invalid")
-
-        for item in value:
-            k, v = item.popitem()
-            match k:
-                # get
-                case '$get': args.append(self.get(**v))
-                case '$pull': args.append(self.create(**v))
-                # update
-                case '$set': args.append(self.update(**v))
-                # delete
-                case '$del': args.append(self.delete(**v))
-                # create
-                case '$push': args.append(self.create(**v))
-        return tuple(args)
+        if len(args) <= 0:
+            raise db.DatabaseParamsError("params can't empty")
+        result = self.__connexion.collect(self, *args)
+        return result
 
     # $push
     def create(self, **kwargs) -> Scalar:
@@ -114,21 +89,20 @@ class Collection:
         if '$pk' not in kwargs.keys():
             raise db.RequestParamsError('pk field required')
 
-        data = kwargs['$pk']
+        _(self, kwargs.values())
+        result = self.__connexion.get(self.__model.__name__.lower(), **kwargs.get('$pk'))
         del kwargs['$pk']
 
-        _(self, kwargs.values())
-        result = self.__connexion.get(self.__model.__name__.lower(), **data)
         if not result:
             return None
-        elif isinstance(result, dict):
-            result = self.__model(**result)
-            # treatment
-            return Scalar(result, self)
-        else:
-            raise db.DataBaseConditionError('too many results')
 
-    def filter(self, **kwargs) -> Matrix | None:
+        result = self.__model(**result)
+        if not result or not treatment(result, kwargs):
+            return None
+
+        return Scalar(result, self)
+
+    def filter(self, **kwargs) -> Matrix | list:
         """
         FILTER
         ======
@@ -142,6 +116,7 @@ class Collection:
         }
         """
         self.__validated_data(**kwargs)
+        data = {}
         for k, v in kwargs.items():
             if isinstance(v, dict):
                 data[k] = v
@@ -149,9 +124,12 @@ class Collection:
 
         result = self.__connexion.filter(self.__model.__name__.lower(), **kwargs)
         if not result:
-            return None
+            return []
         result = [self.__model(**item) for item in result]
         # treatment
+        if len(result) <= 0 or not treatment(result, data):
+            return []
+
         return Matrix(result, self)
 
     def all(self) -> Matrix | None:
@@ -166,7 +144,7 @@ class Collection:
         return Matrix(result, self)
 
     # $set
-    def update(self, **kwargs) -> Matrix | Scalar | None:
+    def update(self, **kwargs) -> Scalar | None:
         """
         UPDATE
         ======
@@ -195,17 +173,17 @@ class Collection:
         if '$pk' not in kwargs.keys():
             raise db.RequestParamsError('pk field required')
         data['$pk'] = kwargs['$pk']
+        result = self.get(kwargs.get('$pk'))
         del kwargs['$pk']
+
+        if not result or treatment(result, kwargs):
+            return None
 
         result = self.__connexion.update(self.__model.__name__.lower(), **data)
         if not result:
             return None
-        if isinstance(result, dict):
-            result = self.__model(**result)
-            # treatment
-            return Scalar(result, self)
-        else:
-            return Matrix([self.__model(**item) for item in result])
+
+        return self.get(kwargs.get('$pk'))
 
     # $del
     def delete(self, **kwargs) -> bool:
@@ -226,15 +204,15 @@ class Collection:
         if '$pk' not in kwargs.keys():
             raise db.RequestParamsError('pk field required')
 
-        result = self.get({'$pk': kwargs.get('$pk')})
-        # treatment
+        result = self.get(kwargs.get('$pk'))
+        if not result or not treatment(result, kwargs):
+            return False
+
         result = self.__connexion.delete(
             self.__model.__name__.lower(),
             **{'$pk': kwargs.get('$pk')}
         )
-        if not result:
-            raise db.DataBaseDeleteError('delete failed')
-        return True
+        return result
 
     # create table if does'nt exists
     def table(self) -> str:

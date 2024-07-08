@@ -14,3 +14,7 @@ def instance(self, *args):
             pk = arg.Meta.pk
             if not self.get({pk: getattr(arg, pk)}):
                 raise ValueError(f"this instance for {arg.__class__.__name__} not exists")
+
+
+def treatment(model, **kwargs):
+    pass
