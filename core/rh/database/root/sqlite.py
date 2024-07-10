@@ -13,7 +13,6 @@ import sqlite3
 # import re
 
 from utils.data import pk
-from utils.data import instance as _
 
 from exceptions.core.rh import database as db
 
@@ -52,6 +51,7 @@ class SqliteCRUD(Rowscrud):
         cursor: sqlite3.Cursor = conn.cursor()
         cursor.execute(query, values)
         conn.commit()
+        return cursor.lastrowid
 
     def bulk__update(self, conn, tablename: str, **kwargs):
         primarykey = kwargs.get('$pk')
@@ -65,6 +65,30 @@ class SqliteCRUD(Rowscrud):
         cursor: sqlite3.Cursor = conn.cursor()
         cursor.execute(query, values)
         conn.commit()
+        return cursor.lastrowid
+
+    def bulk_get(self, conn, tablename: str, **kwargs):
+        column, value = kwargs.popitem()
+        query = f"SELECT * FROM {tablename} WHERE {column} = ?"
+        cursor: sqlite3.Cursor = conn.cursor()
+        cursor.execute(query, (value, ))
+        result = cursor.fetchone()
+        return result
+
+    def bulk_all(self, conn, tablename: str):
+        cursor: sqlite3.Cursor = conn.cursor()
+        cursor.execute(f'SELECT * FROM {tablename}')
+        result = cursor.fetchall()
+        return result
+
+    def bulk_filter(self, conn, tablename: str, *args, **kwargs):
+        placeholders = ' AND '.join([f'{key} = ?' for key in kwargs])
+        values = tuple(kwargs.values())
+        query = f"SELECT * FROM {tablename} WHERE {placeholders}"
+        cursor: sqlite3.Cursor = conn.cursor()
+        cursor.execute(query, values)
+        result = cursor.fetchall()
+        return result
 
     def create(self, tablename: str, **kwargs):
         columns = ', '.join(kwargs.keys())
